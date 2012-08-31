@@ -29,6 +29,8 @@ public class SimpleSQL extends AndroidNonvisibleComponent implements OnDestroySv
 	private int batchCount;
 	private int maxBatchCount = 2000;
 	
+	private static final Object dbLock = new Object();
+	
 	private boolean dontStop;
 	private boolean batch;
 			
@@ -37,14 +39,18 @@ public class SimpleSQL extends AndroidNonvisibleComponent implements OnDestroySv
 	public void onStop() {
 		if (!dontStop) {
 			if (batch) {
-				db.setTransactionSuccessful();
-				db.endTransaction();
+			  synchronized (dbLock) {
+			    db.setTransactionSuccessful();
+                db.endTransaction();
+              }				
 			}
-			if (db != null) {
-				db.close();
-				db.releaseMemory();
-				db = null;
-			}
+			synchronized (dbLock) {
+			  if (db != null) {
+                db.close();
+                db.releaseMemory();
+                db = null;
+              }
+            }			
 		}
 	}
 
@@ -66,12 +72,14 @@ public class SimpleSQL extends AndroidNonvisibleComponent implements OnDestroySv
 	}
 	
 	@SuppressWarnings("static-access")
-	public synchronized void closeDB() {
-		if (db != null) {
-			db.close();
-			db.releaseMemory();
-			db = null;			
-		}
+	public void closeDB() {
+	  synchronized (dbLock) {
+	    if (db != null) {
+          db.close();
+          db.releaseMemory();
+          db = null;          
+        }
+      }		
 	}
 	
 	/**
@@ -82,13 +90,15 @@ public class SimpleSQL extends AndroidNonvisibleComponent implements OnDestroySv
 	 * @throws SQLiteDatabaseCorruptException - This is thrown if the db is corrupt, or not a Sqlite db file. It may also be
 	 * thrown when the builder doesn't match the table/columns in the specified db file
 	 */
-	public synchronized void openDB(String path) throws SQLiteException {
-		if (path != null) {
-			if (db != null && db.isOpen()) {
-				db.close();
-			}			
-			db = SQLiteDatabase.openDatabase(path, null, SQLiteDatabase.OPEN_READWRITE);
-		}
+	public void openDB(String path) throws SQLiteException {
+		synchronized (dbLock) {
+		  if (path != null) {
+            if (db != null && db.isOpen()) {
+                db.close();
+            }           
+            db = SQLiteDatabase.openDatabase(path, null, SQLiteDatabase.OPEN_READWRITE);
+          }
+        }	  
 	}
 	
 	/**
@@ -168,8 +178,10 @@ public class SimpleSQL extends AndroidNonvisibleComponent implements OnDestroySv
 	 * @return
 	 */
 	public String getDBPath() {
-		dbCheck();
-		return db.getPath();
+	  synchronized (dbLock) {
+	    dbCheck();
+        return db.getPath();
+      }		
 	}
 	
 	/**
@@ -179,22 +191,26 @@ public class SimpleSQL extends AndroidNonvisibleComponent implements OnDestroySv
 	 * the database.
 	 * 
 	 */
-	public synchronized void BatchWrite() {
-		dbCheck();
-		batch = true;
-		db.beginTransaction();				
+	public void BatchWrite() {
+		synchronized (dbLock) {
+		  dbCheck();
+	      batch = true;
+	      db.beginTransaction();
+        }	  				
 	}
 	
 	/**
 	 * Use this after performing a batch of inserts/updates, 
 	 * (if you have run BatchWrite() prior).
 	 */
-	public synchronized void FinishBatch() {
-		dbCheck();
-		batch = false;
-		db.setTransactionSuccessful();
-		db.endTransaction();		
-		batchCount = 0;
+	public void FinishBatch() {
+		synchronized (dbLock) {
+		  dbCheck();
+	      batch = false;
+	      db.setTransactionSuccessful();
+	      db.endTransaction();        
+	      batchCount = 0;
+        }	    
 	}
 	
 	/**
@@ -205,9 +221,9 @@ public class SimpleSQL extends AndroidNonvisibleComponent implements OnDestroySv
 	 * having written anything to the db, it will cause an 
 	 * IllegalStateException to be thrown.
 	 */
-	public synchronized void unBatch() {
-		batch = false;
-		batchCount = 0;
+	public void unBatch() {	  
+	    batch = false;
+        batchCount = 0;      		
 	}
 	
 	/**
@@ -240,14 +256,16 @@ public class SimpleSQL extends AndroidNonvisibleComponent implements OnDestroySv
 	 * 
 	 * @param queryString The query string to pass to the sqlite method db.rawQuery()
 	 * @param selectionArgs any values used in the where statement
-	 * @return the cursor object with the data returned. Make sure to close it when done!
+	 * @return the cursor object with the data returned. null if the db is in batch mode
 	 */
-	public synchronized Cursor AdvancedQuery(String queryString, String[] selectionArgs) {
-		dbCheck();
-		if (!batch) {
-			return db.rawQuery(queryString, selectionArgs);
-		}
-		return null;
+	public Cursor AdvancedQuery(String queryString, String[] selectionArgs) {
+		synchronized (dbLock) {
+		  dbCheck();
+	        if (!batch) {
+	            return db.rawQuery(queryString, selectionArgs);
+	        }
+	        return null;
+        }	    
 	}
 	
 	/**
@@ -261,42 +279,44 @@ public class SimpleSQL extends AndroidNonvisibleComponent implements OnDestroySv
 	 * @param data - The data to put into the database
 	 * @return returns a long of the rowId. -1 will be returned if the insert failed.
 	 */	
-	public synchronized long Insert(String table, String... items) {
-		dbCheck();
-		if (batch) {
-			if (batchCount >= maxBatchCount) {
-				db.setTransactionSuccessful();
-				db.endTransaction();
-				batchCount = 0;
-				db.beginTransaction();
-			}
-			batchCount++;
-		}
-		if (items != null) {
-			int amt = items.length;
-			int	tableid = builder.TableId(table);
-			ContentValues values = new ContentValues();
-			for (int i = 0; i < amt; i++) {
-				values.put(builder.Column(tableid)[i], items[i]);
-			}		
-			try {
-				long rowId = db.insert(table, null, values);
-				return 	rowId;
-			} catch (SQLException e) {
-				Log.e("SimpleSQL", "Unable to insert data. Either the table doesn't exist, or incorrect amount of data items." + table);
-				e.printStackTrace();
-				return -1;
-			}
-		} else {			
-			try {
-				long rowid = db.insert(table, null, null);
-				return rowid;
-			} catch (SQLException e) {
-				Log.e("SimpleSQL", "Unable to insert data. Either the table doesn't exist, or incorrect amount of data items." + table);
-				e.printStackTrace();
-				return -1;
-			}
-		}
+	public long Insert(String table, String... items) {
+	  synchronized (dbLock) {
+	    dbCheck();
+        if (batch) {
+            if (batchCount >= maxBatchCount) {
+                db.setTransactionSuccessful();
+                db.endTransaction();
+                batchCount = 0;
+                db.beginTransaction();
+            }
+            batchCount++;
+        }
+        if (items != null) {
+            int amt = items.length;
+            int tableid = builder.TableId(table);
+            ContentValues values = new ContentValues();
+            for (int i = 0; i < amt; i++) {
+                values.put(builder.Column(tableid)[i], items[i]);
+            }       
+            try {
+                long rowId = db.insert(table, null, values);
+                return  rowId;
+            } catch (SQLException e) {
+                Log.e("SimpleSQL", "Unable to insert data. Either the table doesn't exist, or incorrect amount of data items." + table);
+                e.printStackTrace();
+                return -1;
+            }
+        } else {            
+            try {
+                long rowid = db.insert(table, null, null);
+                return rowid;
+            } catch (SQLException e) {
+                Log.e("SimpleSQL", "Unable to insert data. Either the table doesn't exist, or incorrect amount of data items." + table);
+                e.printStackTrace();
+                return -1;
+            }
+        }
+      }		
 	}
 	
 	/**
@@ -308,27 +328,29 @@ public class SimpleSQL extends AndroidNonvisibleComponent implements OnDestroySv
 	 * @param data The data to store
 	 * @return The rowid of the newly inserted data
 	 */
-	public synchronized long Insert(String table, String columntoaddto, String data) {	
-		dbCheck();
-		if (batch) {
-			if (batchCount >= maxBatchCount) {
-				db.setTransactionSuccessful();
-				db.endTransaction();
-				batchCount = 0;
-				db.beginTransaction();
-			}
-			batchCount++;
-		}
-		ContentValues values = new ContentValues();
-		values.put(columntoaddto, data);
-		try {
-			long rowid = db.insert(table, null, values);
-			return rowid;
-		} catch (SQLException e) {
-			Log.e("SimpleSQL", "Unable to insert data. Either the table doesn't exist, or incorrect amount of data items." + table);
-			e.printStackTrace();
-			return -1;
-		}		
+	public long Insert(String table, String columntoaddto, String data) {	
+		synchronized (dbLock) {
+		  dbCheck();
+	        if (batch) {
+	            if (batchCount >= maxBatchCount) {
+	                db.setTransactionSuccessful();
+	                db.endTransaction();
+	                batchCount = 0;
+	                db.beginTransaction();
+	            }
+	            batchCount++;
+	        }
+	        ContentValues values = new ContentValues();
+	        values.put(columntoaddto, data);
+	        try {
+	            long rowid = db.insert(table, null, values);
+	            return rowid;
+	        } catch (SQLException e) {
+	            Log.e("SimpleSQL", "Unable to insert data. Either the table doesn't exist, or incorrect amount of data items." + table);
+	            e.printStackTrace();
+	            return -1;
+	        }
+        }	    		
 	}
 	
 	/**
@@ -341,17 +363,19 @@ public class SimpleSQL extends AndroidNonvisibleComponent implements OnDestroySv
 	 * @return The number of rows deleted from the table. If the table doesn't exist,
 	 *  -1 will be thrown.
 	 */
-	public synchronized int ClearTable(String table) {	
-		dbCheck();
-		if (builder.containsTable(table)) {
-			int rmvd = db.delete(table, "1", null);
-			db.execSQL("VACUUM");
-			db.close();			
-			db = null;
-			db = dbHelper.getWritableDatabase();
-			return rmvd;
-		}
-		return -1;
+	public int ClearTable(String table) {	
+		synchronized (dbLock) {
+		  dbCheck();
+	        if (builder.containsTable(table)) {
+	            int rmvd = db.delete(table, "1", null);
+	            db.execSQL("VACUUM");
+	            db.close();         
+	            db = null;
+	            db = dbHelper.getWritableDatabase();
+	            return rmvd;
+	        }
+	        return -1;
+        }	    
 	}
 	
 	/**
@@ -362,17 +386,19 @@ public class SimpleSQL extends AndroidNonvisibleComponent implements OnDestroySv
 	 * @param table The table to delete
 	 * @return False if the table wasnt found.
 	 */
-	public synchronized boolean DeleteTable(String table) {
-		dbCheck();
-		if (builder.removeTable(table)) {
-			db.execSQL("DROP TABLE IF EXISTS "+table);
-			db.close();
-			db = null;
-			db = dbHelper.getWritableDatabase();
-			return true;
-		} else {
-			return false;
-		}
+	public boolean DeleteTable(String table) {
+		synchronized (dbLock) {
+		  dbCheck();
+	        if (builder.removeTable(table)) {
+	            db.execSQL("DROP TABLE IF EXISTS "+table);
+	            db.close();
+	            db = null;
+	            db = dbHelper.getWritableDatabase();
+	            return true;
+	        } else {
+	            return false;
+	        }
+        }	    
 	}
 			
 	/**
@@ -384,22 +410,24 @@ public class SimpleSQL extends AndroidNonvisibleComponent implements OnDestroySv
 	 * @param rowid The rowid where the data resides
 	 * @param data The new data to store in this location
 	 */
-	public synchronized void Update(String table, String column, long rowid, String data) {
-		dbCheck();
-		if (batch) {
-			if (batchCount >= maxBatchCount) {
-				db.setTransactionSuccessful();
-				db.endTransaction();
-				batchCount = 0;
-				db.beginTransaction();
-			}
-			batchCount++;
-		}
-		ContentValues values = new ContentValues();
-		values.put(column, data);
-		String where = "_id=?";
-		String[] whereArgs = { String.valueOf(rowid) } ;
-		db.update(table, values, where, whereArgs);		
+	public void Update(String table, String column, long rowid, String data) {
+		synchronized (dbLock) {
+		  dbCheck();
+	        if (batch) {
+	            if (batchCount >= maxBatchCount) {
+	                db.setTransactionSuccessful();
+	                db.endTransaction();
+	                batchCount = 0;
+	                db.beginTransaction();
+	            }
+	            batchCount++;
+	        }
+	        ContentValues values = new ContentValues();
+	        values.put(column, data);
+	        String where = "_id=?";
+	        String[] whereArgs = { String.valueOf(rowid) } ;
+	        db.update(table, values, where, whereArgs);
+        }	    		
 	}
 	
 	/**
@@ -412,34 +440,36 @@ public class SimpleSQL extends AndroidNonvisibleComponent implements OnDestroySv
 	 * @param ColumnsToReturn The columns of data you want returned.
 	 * @return An ArrayList<ArrayList<String>> of all the data returned from the database.
 	 */
-	public synchronized ArrayList<ArrayList<String>> Query(String table, String whereStatement, String... ColumnsToReturn) {		
-		dbCheck();
-		if (!batch) {
-			ArrayList<ArrayList<String>> biglist = new ArrayList<ArrayList<String>>();
-			ArrayList<String> smallist = new ArrayList<String>();
-			if (ColumnsToReturn == null || ColumnsToReturn.length < 1) {
-				int tble = builder.TableId(table);
-				ColumnsToReturn = builder.Column(tble).clone();
-			} 
-			whereStatement = parseWhereStmt(whereStatement);		
-			synchronized (db) {
-				Cursor cursor = db.query(table, ColumnsToReturn, whereStatement, whereArgs, null, null, null);
-				if (cursor.moveToFirst()) {
-					int length = cursor.getColumnCount();
-					do {
-						smallist.clear();
-						for (int i = 0; i < length; i++) {
-							smallist.add(cursor.getString(i));
-						}
-						biglist.add(new ArrayList<String>(smallist));
-					
-					} while (cursor.moveToNext());
-				}
-				cursor.close();
-			}				
-			return new ArrayList<ArrayList<String>>(biglist);
-		}
-		throw new RuntimeException("SimpleSQL received a query call while in BatchWrite mode!");
+	public ArrayList<ArrayList<String>> Query(String table, String whereStatement, String... ColumnsToReturn) {		
+		  dbCheck();
+	        if (!batch) {
+	            ArrayList<ArrayList<String>> biglist = new ArrayList<ArrayList<String>>();
+	            ArrayList<String> smallist = new ArrayList<String>();
+	            if (ColumnsToReturn == null || ColumnsToReturn.length < 1) {
+	                int tble = builder.TableId(table);
+	                ColumnsToReturn = builder.Column(tble).clone();
+	            } 
+	            whereStatement = parseWhereStmt(whereStatement); 
+	            Cursor cursor;
+	            synchronized (dbLock) {
+	              cursor = db.query(table, ColumnsToReturn, whereStatement, whereArgs, null, null, null);
+	            }
+	              if (cursor.moveToFirst()) {
+	                  int length = cursor.getColumnCount();
+	                  do {
+	                      smallist.clear();
+	                      for (int i = 0; i < length; i++) {
+	                          smallist.add(cursor.getString(i));
+	                      }
+	                      biglist.add(new ArrayList<String>(smallist));
+	                  
+	                  } while (cursor.moveToNext());
+	              }
+	              cursor.close();
+	            
+	            return new ArrayList<ArrayList<String>>(biglist);
+	        }
+	        throw new RuntimeException("SimpleSQL received a query call while in BatchWrite mode!");	    
 	}
 	
 	/**
@@ -454,34 +484,36 @@ public class SimpleSQL extends AndroidNonvisibleComponent implements OnDestroySv
 	 * @param ColumnsToReturn The columns of data you want returned.
 	 * @return An ArrayList<ArrayList<String>> of all the data returned from the database.
 	 */
-	public synchronized ArrayList<ArrayList<String>> Query(String table, String whereStatement, int limit, String... ColumnsToReturn) {		
-		dbCheck();
-		if (!batch) {
-			ArrayList<ArrayList<String>> biglist = new ArrayList<ArrayList<String>>();
-			ArrayList<String> smallist = new ArrayList<String>();
-			if (ColumnsToReturn == null || ColumnsToReturn.length < 1) {
-				int tble = builder.TableId(table);
-				ColumnsToReturn = builder.Column(tble).clone();
-			} 			
-			whereStatement = parseWhereStmt(whereStatement);		
-			synchronized (db) {
-				Cursor cursor = db.query(table, ColumnsToReturn, whereStatement, whereArgs, null, null, null, limit+"");
-				if (cursor.moveToFirst()) {
-					int length = cursor.getColumnCount();
-					do {
-						smallist.clear();
-						for (int i = 0; i < length; i++) {
-							smallist.add(cursor.getString(i));
-						}
-						biglist.add(new ArrayList<String>(smallist));
-					
-					} while (cursor.moveToNext());
-				}
-				cursor.close();
-			}				
-			return biglist;
-		}
-		throw new RuntimeException("SimpleSQL received a query call while in BatchWrite mode!");
+	public ArrayList<ArrayList<String>> Query(String table, String whereStatement, int limit, String... ColumnsToReturn) {		
+		  dbCheck();
+	        if (!batch) {
+	            ArrayList<ArrayList<String>> biglist = new ArrayList<ArrayList<String>>();
+	            ArrayList<String> smallist = new ArrayList<String>();
+	            if (ColumnsToReturn == null || ColumnsToReturn.length < 1) {
+	                int tble = builder.TableId(table);
+	                ColumnsToReturn = builder.Column(tble).clone();
+	            }           
+	            whereStatement = parseWhereStmt(whereStatement);        
+	            Cursor cursor;
+	            synchronized (dbLock) {
+	              cursor = db.query(table, ColumnsToReturn, whereStatement, whereArgs, null, null, null, limit+"");
+	            }
+	              if (cursor.moveToFirst()) {
+	                  int length = cursor.getColumnCount();
+	                  do {
+	                      smallist.clear();
+	                      for (int i = 0; i < length; i++) {
+	                          smallist.add(cursor.getString(i));
+	                      }
+	                      biglist.add(new ArrayList<String>(smallist));
+	                  
+	                  } while (cursor.moveToNext());
+	              }
+	              cursor.close();
+	                           
+	            return biglist;
+	        }
+	        throw new RuntimeException("SimpleSQL received a query call while in BatchWrite mode!");        	    
 	}
 	
 	/**
@@ -499,38 +531,40 @@ public class SimpleSQL extends AndroidNonvisibleComponent implements OnDestroySv
 	 * @param orderBy yet again, same as above, usually null
 	 * @return An ArrayList<ArrayList<String>> of the results. This is a list of a list. (Each inner list contains a row of data)
 	 */
-	public synchronized ArrayList<ArrayList<String>> Query3(String table, String[] columns, String selection, 
-			String[] selectionArgs, String groupBy, String having, String orderBy) {
-		dbCheck();
-		if (!batch) {
-			final ArrayList<ArrayList<String>> biglist = new ArrayList<ArrayList<String>>();
-			final ArrayList<String> list = new ArrayList<String>();
-			synchronized (db) {				
-				Cursor cursor = db.query(table, columns, selection, selectionArgs, groupBy, having, orderBy);
-				int cols = cursor.getColumnCount();			
-				if (cursor.moveToFirst()) {
-					do {				
-						list.clear();
-						for (int i = 0; i < cols; i++) {
-							if (columns == null) {
-								if (i==0) {
-									
-								} else {								
-									list.add(cursor.getString(i));							
-								}
-							} else {
-								
-								list.add(cursor.getString(i));
-							}
-						}
-						biglist.add(list);
-					} while (cursor.moveToNext());
-				}
-				cursor.close();
-			}		
-			return biglist;
-		}
-		throw new RuntimeException("SimpleSQL received a query call while in BatchWrite mode!");
+	public ArrayList<ArrayList<String>> Query3(String table, String[] columns, String selection, 
+			String[] selectionArgs, String groupBy, String having, String orderBy) {		
+		  dbCheck();
+	        if (!batch) {
+	            final ArrayList<ArrayList<String>> biglist = new ArrayList<ArrayList<String>>();
+	            final ArrayList<String> list = new ArrayList<String>();
+	                Cursor cursor;
+	                synchronized (dbLock) {
+	                  cursor = db.query(table, columns, selection, selectionArgs, groupBy, having, orderBy);
+	                }
+	                int cols = cursor.getColumnCount();         
+	                if (cursor.moveToFirst()) {
+	                    do {                
+	                        list.clear();
+	                        for (int i = 0; i < cols; i++) {
+	                            if (columns == null) {
+	                                if (i==0) {
+	                                    
+	                                } else {                                
+	                                    list.add(cursor.getString(i));                          
+	                                }
+	                            } else {
+	                                
+	                                list.add(cursor.getString(i));
+	                            }
+	                        }
+	                        biglist.add(list);
+	                    } while (cursor.moveToNext());
+	                }
+	                cursor.close();
+	                   
+	            return biglist;
+	        }
+	        throw new RuntimeException("SimpleSQL received a query call while in BatchWrite mode!");        	    
 	}
 	
 	/**
@@ -548,38 +582,39 @@ public class SimpleSQL extends AndroidNonvisibleComponent implements OnDestroySv
 	 * @param orderBy yet again, same as above, usually null
 	 * @return An ArrayList<ArrayList<String>> of the results. This is a list of a list. (Each inner list contains a row of data)
 	 */
-	public synchronized ArrayList<ArrayList<String>> Query3(String table, String[] columns, String selection, 
-			String[] selectionArgs, int limit, String groupBy, String having, String orderBy) {
-		dbCheck();
-		if (!batch) {
-			final ArrayList<ArrayList<String>> biglist = new ArrayList<ArrayList<String>>();
-			final ArrayList<String> list = new ArrayList<String>();
-			synchronized (db) {				
-				
-				Cursor cursor = db.query(table, columns, selection, selectionArgs, groupBy, having, orderBy, String.valueOf(limit));				
-				int cols = cursor.getColumnCount();			
-				if (cursor.moveToFirst()) {
-					do {				
-						list.clear();
-						for (int i = 0; i < cols; i++) {
-							if (columns == null) {
-								if (i==0) {
-									
-								} else {									
-										list.add(cursor.getString(i));									
-								}
-							} else {								
-									list.add(cursor.getString(i));								
-							}
-						}
-						biglist.add(list);
-					} while (cursor.moveToNext());
-				}
-				cursor.close();
-			}		
-			return biglist;
-		}
-		throw new RuntimeException("SimpleSQL received a query call while in BatchWrite mode!");
+	public ArrayList<ArrayList<String>> Query3(String table, String[] columns, String selection, 
+			String[] selectionArgs, int limit, String groupBy, String having, String orderBy) {		
+		  dbCheck();
+	        if (!batch) {
+	            final ArrayList<ArrayList<String>> biglist = new ArrayList<ArrayList<String>>();
+	            final ArrayList<String> list = new ArrayList<String>();	                
+	                Cursor cursor;
+	                synchronized (dbLock) {
+	                  cursor = db.query(table, columns, selection, selectionArgs, groupBy, having, orderBy, String.valueOf(limit));
+	                }
+	                int cols = cursor.getColumnCount();         
+	                if (cursor.moveToFirst()) {
+	                    do {                
+	                        list.clear();
+	                        for (int i = 0; i < cols; i++) {
+	                            if (columns == null) {
+	                                if (i==0) {
+	                                    
+	                                } else {                                    
+	                                        list.add(cursor.getString(i));                                  
+	                                }
+	                            } else {                                
+	                                    list.add(cursor.getString(i));                              
+	                            }
+	                        }
+	                        biglist.add(list);
+	                    } while (cursor.moveToNext());
+	                }
+	                cursor.close();
+	                   
+	            return biglist;
+	        }
+	        throw new RuntimeException("SimpleSQL received a query call while in BatchWrite mode!");	    
 	}
 	
 	private String parseWhereStmt(String whereStatement) {
@@ -712,21 +747,23 @@ public class SimpleSQL extends AndroidNonvisibleComponent implements OnDestroySv
 	 * @param table The table to remove the row from
 	 * @param id The rowid to remove
 	 */
-	public synchronized void RemoveRow(String table, long id) {
+	public void RemoveRow(String table, long id) {		
 		dbCheck();
-		db.delete(table, "_id=?", new String[] { String.valueOf(id) });
+		synchronized (dbLock) {
+	      db.delete(table, "_id=?", new String[] { String.valueOf(id) });
+        }	    
 	}
 	
 	/**
 	 * 
 	 * @return If the db is locked by a thread, either current, or other threads.
 	 */
-	public synchronized boolean isLocked() {
+	public boolean isLocked() {		
 		dbCheck();
-		if (db.isDbLockedByCurrentThread() || db.isDbLockedByOtherThreads()) {
-			return true;
-		}
-		return false;
+	    if (db.isDbLockedByCurrentThread() || db.isDbLockedByOtherThreads()) {
+	        return true;
+	    }
+	    return false;        	    
 	}
 	
 	/**
@@ -741,31 +778,32 @@ public class SimpleSQL extends AndroidNonvisibleComponent implements OnDestroySv
 	 * @param data The data to check
 	 * @return true if the data is in the database, false if not
 	 */	
-	public synchronized boolean InTable(String table, Object data) {	
-		dbCheck();
-		if (!batch) {
-			String querystring = "select * from " + table;		
-			synchronized (db) {
-				Cursor cursor = db.rawQuery(querystring, null);
-				int length = cursor.getColumnCount();			
-				if (cursor.moveToFirst()) {		
-					do {				
-						for (int i = 0; i < length; i++) {
-							if (i==0) {
-							
-							} else {
-								if (cursor.getString(i).equals(data)) {
-									return true;
-								}	
-							}
-						}										
-					} while (cursor.moveToNext());
-				}
-				cursor.close();
-			}				
-			return false;
-		}
-		throw new RuntimeException("SimpleSQL received a query call while in BatchWrite mode!");
+	public boolean InTable(String table, Object data) {		
+		  dbCheck();
+	        if (!batch) {
+	            String querystring = "select * from " + table;     
+	            Cursor cursor;
+	            synchronized (dbLock) {	              
+	                cursor = db.rawQuery(querystring, null);
+	            }
+	            int length = cursor.getColumnCount();           
+	            if (cursor.moveToFirst()) {     
+	                do {                
+	                    for (int i = 0; i < length; i++) {
+	                        if (i==0) {
+	                            
+	                        } else {
+	                            if (cursor.getString(i).equals(data)) {
+	                                return true;
+	                            }   
+	                        }
+	                    }                                       
+	                } while (cursor.moveToNext());
+	            }
+	            cursor.close();	                           
+	            return false;
+	        }
+	        throw new RuntimeException("SimpleSQL received a query call while in BatchWrite mode!");        	    
 	}
 	
 	/**
@@ -774,15 +812,18 @@ public class SimpleSQL extends AndroidNonvisibleComponent implements OnDestroySv
 	 * @return an int of the amount of rows in the table. This may change
 	 * to a long at some point.
 	 */
-	public synchronized int GetRowCount(String table) {
-		dbCheck();
-		if (!batch) {
-		    Cursor cursor = db.rawQuery("select * from "+table, null);
-		    int count = cursor.getCount();
-		    cursor.close();
-			return count;
-		}
-		throw new RuntimeException("SimpleSQL received a query call while in BatchWrite mode!");
+	public int GetRowCount(String table) {		
+		    dbCheck();
+	        if (!batch) {
+	          Cursor cursor;
+	          synchronized (dbLock) {	            
+	            cursor = db.rawQuery("select * from "+table, null);
+	          }
+	          int count = cursor.getCount();
+	          cursor.close();
+	          return count;
+	        }
+	        throw new RuntimeException("SimpleSQL received a query call while in BatchWrite mode!");	    
 	}
 	
 	/**
@@ -792,27 +833,27 @@ public class SimpleSQL extends AndroidNonvisibleComponent implements OnDestroySv
 	 * @param rowId The rowid of the row you'd like to grab
 	 * @return An ArrayList<String> of all the data in the specified table, and rowid
 	 */
-	public synchronized ArrayList<String> GetRow(String table, long rowId) {
-		dbCheck();
-		if (!batch) {
-			ArrayList<String> list = new ArrayList<String>();
-			synchronized (db) {
-				Cursor cursor = db.query(table, null, COLUMN_ID + "=" + rowId, null, null, null, null);			
-				if (cursor.moveToFirst()) {
-					int count = cursor.getColumnCount();
-					for (int i = 0; i < count; i++) {
-						if (i==0) {						
-						} else {
-							list.add(cursor.getString(i));							
-						}
-					}			
-				}
-				cursor.close();
-			}
-		
-			return list;
-		}
-		throw new RuntimeException("SimpleSQL received a query call while in BatchWrite mode!");
+	public ArrayList<String> GetRow(String table, long rowId) {		
+		  dbCheck();
+	        if (!batch) {
+	            ArrayList<String> list = new ArrayList<String>();
+	            Cursor cursor;
+	            synchronized (dbLock) {	              
+	                cursor = db.query(table, null, COLUMN_ID + "=" + rowId, null, null, null, null);
+	            }
+	            if (cursor.moveToFirst()) {
+	                int count = cursor.getColumnCount();
+	                for (int i = 0; i < count; i++) {
+	                    if (i==0) {                     
+	                    } else {
+	                        list.add(cursor.getString(i));                          
+	                    }
+	               }           
+	            }
+	            cursor.close();	        
+	            return list;
+	        }
+	        throw new RuntimeException("SimpleSQL received a query call while in BatchWrite mode!");        	    
 	}
 	
 	/**
@@ -825,20 +866,21 @@ public class SimpleSQL extends AndroidNonvisibleComponent implements OnDestroySv
 	 * @return the rowid of the data (long)
 	 */
 	
-	public synchronized long GetRowID(String table, String column, String data) {
-		dbCheck();
-		if (!batch) {
-			long id = -1;
-			synchronized (db) {
-				Cursor cursor = db.query(table, new String[] { "_id" }, column+"=?", new String[] { data }, null, null, null);
-				if (cursor.moveToFirst()) {
-					id = cursor.getLong(0);
-				}	
-				cursor.close();
-			}
-			return id;
-		}
-		throw new RuntimeException("SimpleSQL received a query call while in BatchWrite mode!");
+	public long GetRowID(String table, String column, String data) {		
+		  dbCheck();
+	        if (!batch) {
+	            long id = -1;
+	            Cursor cursor;
+	            synchronized (dbLock) {
+	               cursor = db.query(table, new String[] { "_id" }, column+"=?", new String[] { data }, null, null, null);
+	            }
+	            if (cursor.moveToFirst()) {
+	                id = cursor.getLong(0);
+	            }   
+	            cursor.close();	            
+	            return id;
+	        }
+	        throw new RuntimeException("SimpleSQL received a query call while in BatchWrite mode!");       	    
 	}
 	
 		
@@ -851,24 +893,26 @@ public class SimpleSQL extends AndroidNonvisibleComponent implements OnDestroySv
 	 * @param id the rowid of the data
 	 * @return a String of the data stored in the specified position
 	 */
-	public synchronized String GetValue(String table, String columnName, long id) {
-		dbCheck();
-		if (!batch) {
-			String rtn;
-			synchronized (db) {
-				String[] column = { COLUMN_ID, columnName };
-				Cursor cursor = db.query(table, column, COLUMN_ID + "=" + id, null, null, null, null);
-				if (cursor.moveToFirst()) {		
-					rtn = cursor.getString(1);					
-				} else {
-					Log.e("SimpleSQL", "List is empty. Are you sure you have a valid rowid?");
-					rtn = "";
-				}
-				cursor.close();
-			}		
-			return rtn;
-		}
-		throw new RuntimeException("SimpleSQL received a query call while in BatchWrite mode!");
+	public String GetValue(String table, String columnName, long id) {		
+		  dbCheck();
+	        if (!batch) {
+	            String rtn;	            
+	            String[] column = { COLUMN_ID, columnName };
+	            Cursor cursor;
+	            synchronized (dbLock) {
+	              cursor = db.query(table, column, COLUMN_ID + "=" + id, null, null, null, null);
+	            }
+	            if (cursor.moveToFirst()) {     
+	                rtn = cursor.getString(1);                  
+	            } else {
+	                Log.e("SimpleSQL", "List is empty. Are you sure you have a valid rowid?");
+	                rtn = "";
+	            }
+	            cursor.close();
+	                   
+	            return rtn;
+	        }
+	        throw new RuntimeException("SimpleSQL received a query call while in BatchWrite mode!");	    
 	}
 	
 	/**
@@ -880,25 +924,28 @@ public class SimpleSQL extends AndroidNonvisibleComponent implements OnDestroySv
 	 * @param column The column you'd like returned
 	 * @return an ArrayList<String> of all the values in the column.
 	 */
-	public synchronized ArrayList<String> GetColumn(String table, String column) {
-		dbCheck();
-		if (!batch) {
-			ArrayList<String> list = new ArrayList<String>();
-			Cursor cursor = db.rawQuery("select "+column+" from "+table, null);
-			int size = cursor.getCount();
-			if (size==0) {
-				Log.e("SimpleSQL", "Can't get column, as it's empty!");			
-			} else {
-				cursor.moveToFirst();
-				for ( int i = 0; i < size ; i++) {
-					list.add(cursor.getString(0));								
-					cursor.moveToNext();
-				}
-			}
-			cursor.close();
-			return list;
-		}
-		throw new RuntimeException("SimpleSQL received a query call while in BatchWrite mode!");
+	public ArrayList<String> GetColumn(String table, String column) {		
+		  dbCheck();
+	        if (!batch) {
+	            ArrayList<String> list = new ArrayList<String>();
+	            Cursor cursor;
+	            synchronized (dbLock) {
+	              cursor = db.rawQuery("select "+column+" from "+table, null);
+	            }
+	            int size = cursor.getCount();
+	            if (size==0) {
+	                Log.e("SimpleSQL", "Can't get column, as it's empty!");         
+	            } else {
+	                cursor.moveToFirst();
+	                for ( int i = 0; i < size ; i++) {
+	                    list.add(cursor.getString(0));                              
+	                    cursor.moveToNext();
+	                }
+	            }
+	            cursor.close();
+	            return list;
+	        }
+	        throw new RuntimeException("SimpleSQL received a query call while in BatchWrite mode!");        	    
 	}
 	
 	private void genDatabaseCreateStmt(int table, int cnt, DBBuilder builder) {		
