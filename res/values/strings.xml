@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="hello">Hello World, AlternateJavaBridgelibActivity!</string>
+    <string name="app_name">AlternateJavaBridgelib</string>
+    <string name="close">Close</string>
+    <string name="open">Open</string>
+</resources>
