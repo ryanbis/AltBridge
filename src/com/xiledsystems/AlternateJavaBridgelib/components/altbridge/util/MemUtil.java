@@ -27,7 +27,7 @@ public class MemUtil {
 	public static double Allocated() {				
 		Debug.MemoryInfo memInfo = new Debug.MemoryInfo();
 		Debug.getMemoryInfo(memInfo);
-		return new Double(memInfo.getTotalPss()/1024/1024);
+		return Double.valueOf(memInfo.getTotalPss()/1024/1024);
 	}
 	
 	/**
@@ -35,7 +35,7 @@ public class MemUtil {
 	 * @return - The amount of available heap size (in MB)
 	 */
 	public static double Available() {				
-		return new Double(Runtime.getRuntime().maxMemory()/1024/1024);
+		return Double.valueOf(Runtime.getRuntime().maxMemory()/1024/1024);
 	}
 	
 	/**
@@ -45,7 +45,7 @@ public class MemUtil {
 	public static double Free() {		
 		Debug.MemoryInfo memInfo = new Debug.MemoryInfo();
 		Debug.getMemoryInfo(memInfo);
-		return new Double((Runtime.getRuntime().maxMemory() - memInfo.getTotalPss())/1024/1024);
+		return Double.valueOf((Runtime.getRuntime().maxMemory() - memInfo.getTotalPss())/1024/1024);
 	}
 
 }

@@ -28,7 +28,7 @@ import com.xiledsystems.AlternateJavaBridgelib.components.events.Events;
  */
 
 public class OrientationSensor extends AndroidNonvisibleComponent
-    implements SensorEventListener, Deleteable, OnResumeListener, OnPauseListener {
+    implements SensorEventListener, Deleteable, OnResumeListener, OnStopListener {
   
   private static final String LOG_TAG = "OrientationSensor";
   //offsets in array returned by SensorManager.getOrientation()
@@ -41,6 +41,7 @@ public class OrientationSensor extends AndroidNonvisibleComponent
   private final Sensor accelerometerSensor;
   private boolean listening;
   
+  private boolean adjustAzimuth;
   private boolean enabled;
   private float azimuth;
   private float pitch;
@@ -76,16 +77,16 @@ public class OrientationSensor extends AndroidNonvisibleComponent
     magneticFieldSensor = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
         
     container.$form().registerForOnResume(this);
-    container.$form().registerForOnPause(this);
+    container.$form().registerForOnStop(this);
     Enabled(true);
   }
   
   private void startListening() {
     if (!listening) {
       sensorManager.registerListener(this, accelerometerSensor,
-                                     SensorManager.SENSOR_DELAY_NORMAL);
+                                     SensorManager.SENSOR_DELAY_GAME);
       sensorManager.registerListener(this, magneticFieldSensor,
-                                     SensorManager.SENSOR_DELAY_NORMAL);
+                                     SensorManager.SENSOR_DELAY_GAME);
       listening = true;
     }
   }
@@ -213,6 +214,24 @@ public class OrientationSensor extends AndroidNonvisibleComponent
   }
   
   /**
+   * Use this if you want the azimuth to automatically adjust
+   * when the device is tilted from it's natural orientation.
+   * 
+   * @param autoAdjust
+   */
+  public void AutoAdjustAzimuth(boolean autoAdjust) {
+    adjustAzimuth = autoAdjust;
+  }
+  
+  /**
+   * 
+   * @return whether or not this is auto adjusting the azimuth
+   */
+  public boolean AutoAdjustAzimuth() {
+    return adjustAzimuth;
+  }
+  
+  /**
    * Computes the angle the phone is tilted.  This has been lifted out
    * of {@link #Angle()} for ease of testing.
    *
@@ -259,12 +278,6 @@ public class OrientationSensor extends AndroidNonvisibleComponent
     return (float) (1.0 - Math.cos(npitch) * Math.cos(nroll));
   }
   
- 
-  
-  private int getRotation() {
-	  return container.$context().getWindowManager().getDefaultDisplay().getRotation();
-  }
-
   // SensorListener implementation
   
   /*
@@ -338,14 +351,32 @@ public class OrientationSensor extends AndroidNonvisibleComponent
           case Surface.ROTATION_0:  // normal rotation
             break;
           case Surface.ROTATION_90:  // phone is turned 90 degrees counter-clockwise
+            if (adjustAzimuth) {
+              azimuth += 90;
+              if (azimuth < 0) {
+                azimuth -= 360;
+              }
+            }
             float temp = -pitch;
             pitch = -roll;
             roll = temp;
             break;
           case Surface.ROTATION_180: // phone is rotated 180 degrees
+            if (adjustAzimuth) {
+              azimuth -= 180;
+              if (azimuth < 0) {
+                azimuth += 360;
+              }
+            }
             roll = -roll;
             break;
           case Surface.ROTATION_270:  // phone is turned 90 degrees clockwise
+            if (adjustAzimuth) {
+              azimuth -= 90;
+              if (azimuth > 360) {
+                azimuth +=360;
+              }
+            }
             temp = pitch;
             pitch = roll;
             roll = temp;
@@ -383,7 +414,7 @@ public class OrientationSensor extends AndroidNonvisibleComponent
   }
 
   @Override
-  public void onPause() {
+  public void onStop() {
     stopListening();
   }
 }

@@ -6,7 +6,6 @@ import android.content.Context;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.Rect;
@@ -28,7 +27,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
 import com.xiledsystems.AlternateJavaBridgelib.components.Component;
 import com.xiledsystems.AlternateJavaBridgelib.components.altbridge.Form;
 import com.xiledsystems.AlternateJavaBridgelib.components.altbridge.util.DonutUtil;
@@ -338,64 +336,52 @@ public final class AnimCanvas extends AndroidViewComponent implements DrawingCan
     		return getHandler();
     	}
     	
-    	 public void doDraw(android.graphics.Canvas canvas0) {    		 	
-    	    	canvas0.drawBitmap(viewBitmap, 0, 0, null);
-    	    	int l = sprites.size();
-    	    	for (int i = 0; i < l; i++) {
-    	    		//final int y = i;
-    	    		//container.$form().post(new Runnable() {
-						
-						//@Override
-						//public void run() {
-							sprites.get(i).alarm2();
-						//}
-					//});
-    	    		
-    	    		sprites.get(i).onDraw(canvas0);   
-    	    		
-    	    	}    	        	    	
-    	    	drawn = true;    	    	
-    	    }
+    	public void doDraw(android.graphics.Canvas canvas0) {    		 	
+    	   	canvas0.drawBitmap(viewBitmap, 0, 0, null);
+    	   	int l = sprites.size();
+    	   	for (int i = 0; i < l; i++) {
+    	    	  
+    	   		sprites.get(i).alarm2();					
+    	   		sprites.get(i).onDraw(canvas0);    	    		
+    	   	}    	        	    	
+    	   	drawn = true;    	    	
+    	}
     	
     	@Override
     	public void run() {
     		android.graphics.Canvas c;
-    		//double lastrun = 0;
     		int sleepTime;
 			long beginTime;
 			long timeDiff;
     		while (_run) {    			
-    			//if (lastrun+cycleRate<System.currentTimeMillis()) {
-    				beginTime = System.currentTimeMillis();
-    				c = null;
-    				try {
-    					c = surfaceHolder.lockCanvas(null);
-    					synchronized (surfaceHolder) {
-    						doDraw(c);	    						    						
-    					}
-    				} finally {
-    					if (c != null) {
-    						surfaceHolder.unlockCanvasAndPost(c);
-    						//lastrun = System.currentTimeMillis();
-    					}
+    		    beginTime = System.currentTimeMillis();
+    		    c = null;
+    			try {
+    				c = surfaceHolder.lockCanvas(null);
+    				if (c != null) {
+    				    synchronized (surfaceHolder) {
+    				      doDraw(c);	    						    						
+    				    }
     				}
-    				timeDiff = System.currentTimeMillis() - beginTime;
-					
-					sleepTime = (int) (cycleRate - timeDiff);
-					
-					if (sleepTime > 0) {
-						try {							
-							Thread.sleep(sleepTime);
-						} catch (InterruptedException e) {							
-						}
-					}	
-    			//}
+    			} finally {
+    				if (c != null) {
+    					surfaceHolder.unlockCanvasAndPost(c);
+    				}
+    			}
+    			timeDiff = System.currentTimeMillis() - beginTime;
+				
+				sleepTime = (int) (cycleRate - timeDiff);
+				
+				if (sleepTime > 0) {
+					try {							
+						Thread.sleep(sleepTime);
+					} catch (InterruptedException e) {	
+					    interrupt();
+					}
+				}	
     		}
     	}
-    }
-    
-    
-    
+    }    
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {

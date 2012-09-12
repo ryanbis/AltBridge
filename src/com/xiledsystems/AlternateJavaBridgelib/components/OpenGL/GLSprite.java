@@ -70,6 +70,21 @@ public class GLSprite extends GLRectangle implements GLTouchDragged, GLCollision
 				
 	}
 	
+	public int X() {
+	  return (int) xLeft;
+	}
+	
+	public int Y() {
+	  return (int) yTop;
+	}
+	
+	public void MoveTo(int x, int y) {
+	    xLeft = x;
+	    yTop = y;
+	    setVertices();
+	    resetVertexBuffer();
+	}
+	
 	private void getSize(int resourceId) {
 		final BitmapFactory.Options options = new BitmapFactory.Options();
 		options.inScaled = false;

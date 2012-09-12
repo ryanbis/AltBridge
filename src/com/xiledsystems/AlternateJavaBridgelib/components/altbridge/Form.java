@@ -266,6 +266,8 @@ public class Form extends Activity
     	}
     }
         
+    density = getResources().getDisplayMetrics().density;
+    
     // method to use for setting the theme. Needs to be done before calling
     // setContentView, or inflate. The dev can override this method
     // to do what they need to before the UI loads.
@@ -896,8 +898,7 @@ public void setScrnVars() {
 		} else {
 			scrnWidth = display.getWidth();			
 			scrnHeight = display.getHeight();
-		}
-		density = getResources().getDisplayMetrics().density;
+		}		
 		if (!xmlUI) {			
 			availWidth = frameLayout.getWidth();
 			availHeight = frameLayout.getHeight();

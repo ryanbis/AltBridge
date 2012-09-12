@@ -11,13 +11,13 @@ public class CalendarEvent {
 	
 	public void Start(int year, int month, int day, int hour, int min) {
 		Calendar begin = Calendar.getInstance();
-		begin.set(year, month, day, hour, min);
+		begin.set(year, month-1, day, hour, min);
 		startTime = begin.getTimeInMillis();
 	}
 	
 	public void End(int year, int month, int day, int hour, int min) {
-		Calendar end = Calendar.getInstance();
-		end.set(year, month, day, hour, min);
+		Calendar end = Calendar.getInstance();		
+		end.set(year, month-1, day, hour, min);
 		endTime = end.getTimeInMillis();
 	}
 	

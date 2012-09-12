@@ -1,32 +1,27 @@
 package com.xiledsystems.AlternateJavaBridgelib.components.OpenGL;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
-
 import com.xiledsystems.AlternateJavaBridgelib.components.altbridge.Sprite;
 import com.xiledsystems.AlternateJavaBridgelib.components.altbridge.collect.Sets;
 import com.xiledsystems.AlternateJavaBridgelib.components.events.EventDispatcher;
 import com.xiledsystems.AlternateJavaBridgelib.components.events.Events;
-
 import android.graphics.Color;
 import android.opengl.GLES20;
 import android.opengl.Matrix;
 import android.opengl.GLSurfaceView.Renderer;
 import android.util.Log;
 import android.view.MotionEvent;
-import android.widget.ImageView;
 
 
 public class GLRenderer implements Renderer {
 	
-	private ArrayList<GLObject> objects = new ArrayList<GLObject>();
-	private ArrayList<GLTouchDragged> sprites = new ArrayList<GLTouchDragged>();
+	private Set<GLObject> objects = Sets.newHashSet();
+	private Set<GLTouchDragged> sprites = Sets.newHashSet();
 	private Set<onGLSurfaceCreated> onCreateComponents = Sets.newHashSet();
 	private Set<onSurfaceChangedListener> onChangedListeners = Sets.newHashSet();
-	private final List<GLTouchDragged> draggedSprites = new ArrayList<GLTouchDragged>();
+	private final Set<GLTouchDragged> draggedSprites = Sets.newHashSet();
 	protected float ratio;
 	
 	private float rValue = 0.5f;
@@ -143,8 +138,11 @@ public class GLRenderer implements Renderer {
 		GLES20.glViewport(0, 0, width, height);		
 		ratio = (float) width / height;
 		
-		xRatio = (ratio*2f) / view.xSize;		
-		yRatio = 2f / view.ySize;
+		float worldxRatio = width / view.xSize;
+		float worldyRatio = height / view.ySize;
+		
+		xRatio = (ratio*2f) * worldxRatio;		
+		yRatio = 2f * worldyRatio;
 		
 		// Convert Sprite's coordinates to real screen coordinates when
 		// processing touch intersections

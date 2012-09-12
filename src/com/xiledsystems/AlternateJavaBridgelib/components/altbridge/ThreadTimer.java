@@ -291,7 +291,7 @@ public class ThreadTimer extends AndroidNonvisibleComponent implements OnResumeL
 		thread.start();		
 	}
 	
-	private void dispatchTimerEvent() {
+	protected void dispatchTimerEvent() {
 		
 		EventDispatcher.dispatchEvent(this, "Timer");
 		

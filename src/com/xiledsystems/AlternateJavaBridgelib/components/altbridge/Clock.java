@@ -1,6 +1,10 @@
 package com.xiledsystems.AlternateJavaBridgelib.components.altbridge;
 
+import java.text.Format;
 import java.util.Calendar;
+
+import android.content.Context;
+import android.text.format.DateFormat;
 
 import com.xiledsystems.AlternateJavaBridgelib.components.AlarmHandler;
 import com.xiledsystems.AlternateJavaBridgelib.components.Component;
@@ -74,6 +78,34 @@ public final class Clock extends AndroidNonvisibleComponent
   
   public int TimerInterval() {
     return timerInternal.Interval();
+  }
+  
+  /**
+   * Returns a string representation of a date in milliseconds.
+   * This will return just the date, no time.
+   * The format used is the phone's default.
+   *   
+   * @param timeInMillis the time to format in milliseconds
+   * @param context
+   * @return a string formatted to print the date of the timeinmillis
+   */
+  public static String DateFormat(long timeInMillis, Context context) {
+    Format df = DateFormat.getDateFormat(context);
+    return df.format(timeInMillis);
+  }
+  
+  /**
+   * Returns a string representation of a time in milliseconds.
+   * This will return just the time, no date.
+   * The format used is the phone's default.
+   *   
+   * @param timeInMillis the time to format in milliseconds
+   * @param context
+   * @return a string formatted to print the time of the timeinmillis
+   */
+  public static String TimeFormat(long timeInMillis, Context context) {
+    Format tf = DateFormat.getTimeFormat(context);
+    return tf.format(timeInMillis);
   }
 
   /**

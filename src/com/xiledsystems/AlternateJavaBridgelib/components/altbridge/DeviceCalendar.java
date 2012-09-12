@@ -1,8 +1,7 @@
 package com.xiledsystems.AlternateJavaBridgelib.components.altbridge;
 
 import java.util.ArrayList;
-import java.util.Calendar;
-
+import java.util.TimeZone;
 import android.annotation.TargetApi;
 import android.content.ContentResolver;
 import android.content.ContentValues;
@@ -12,9 +11,9 @@ import android.net.Uri;
 import android.provider.CalendarContract;
 import android.provider.CalendarContract.Events;
 import android.util.Log;
-
 import com.xiledsystems.AlternateJavaBridgelib.components.altbridge.util.Cal;
 import com.xiledsystems.AlternateJavaBridgelib.components.altbridge.util.CalendarEvent;
+
 
 @TargetApi(14)
 public class DeviceCalendar extends AndroidNonvisibleComponent {
@@ -31,6 +30,9 @@ public class DeviceCalendar extends AndroidNonvisibleComponent {
 	 * This method is for pushing an event to the calendar
 	 * through an intent. This way does not require any special
 	 * permissions in your manifest.
+	 * NOTE: This will fail on some devices. I have a Samsung
+	 * Galaxy SII, with 4.0.4 on it, and this method force closes
+	 * when used. The addEvent() method works fine, however.
 	 * 
 	 * @param event
 	 */
@@ -48,7 +50,8 @@ public class DeviceCalendar extends AndroidNonvisibleComponent {
 	 * This method will add the event to the user's calendar
 	 * without the use of an intent. However, this requires
 	 * you to set the READ_CALENDAR, and WRITE_CALENDAR
-	 * permissions.
+	 * permissions. This should work more reliably on devices
+	 * than pushEvent.
 	 * 
 	 * @param event
 	 * 
@@ -63,10 +66,10 @@ public class DeviceCalendar extends AndroidNonvisibleComponent {
 		values.put(CalendarContract.Events.DTSTART, event.startTime());
 		values.put(CalendarContract.Events.DTEND, event.endTime());
 		values.put(CalendarContract.Events.TITLE, event.Title());
-		values.put(CalendarContract.Events.EVENT_TIMEZONE, Calendar.getInstance().getTimeZone().getDisplayName());
+		values.put(CalendarContract.Events.EVENT_TIMEZONE, TimeZone.getDefault().getID());
 		values.put(CalendarContract.Events.DESCRIPTION, event.Description());
 		values.put(CalendarContract.Events.CALENDAR_ID, calId);
-		Uri uri = cr.insert(CalendarContract.Events.CONTENT_URI, values);
+		Uri uri = cr.insert(CalendarContract.Events.CONTENT_URI, values);		
 		
 		return uri.getLastPathSegment();
 	}
@@ -84,7 +87,7 @@ public class DeviceCalendar extends AndroidNonvisibleComponent {
 	  }
 	  return calendars;
 	}
-
+	
 	private void getCalendars() {
 		Uri uri = CalendarContract.Calendars.CONTENT_URI;
 		String[] projection = new String[] { 
@@ -107,7 +110,6 @@ public class DeviceCalendar extends AndroidNonvisibleComponent {
 		    calendars.add(cal);
 		  } while (c.moveToNext());
 		}		
-	}
-	
+	}	
 
 }

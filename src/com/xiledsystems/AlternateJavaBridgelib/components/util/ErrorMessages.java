@@ -1,5 +1,6 @@
 package com.xiledsystems.AlternateJavaBridgelib.components.util;
 
+import android.annotation.SuppressLint;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -7,6 +8,7 @@ import java.util.Map;
  * Provides constants and methods related to error numbers and messages.
  *
  */
+@SuppressLint("UseSparseArrays")
 public final class ErrorMessages {
   // Phone version errors
   public static final int ERROR_FUNCTIONALITY_NOT_SUPPORTED_CONTACT_EMAIL = 1;
