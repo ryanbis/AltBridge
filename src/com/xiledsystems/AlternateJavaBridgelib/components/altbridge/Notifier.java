@@ -318,7 +318,7 @@ public void ShowDialog(String message, String title, final String... buttonText)
     if (layoutRes != 0 && textRes != 0 && rootRes != 0) {
       LayoutInflater inflater = form.getLayoutInflater();
       View layout = inflater.inflate(layoutRes, (ViewGroup) form.findViewById(rootRes));
-      TextView text = (TextView) form.findViewById(textRes);
+      TextView text = (TextView) layout.findViewById(textRes);
       text.setText(notice);
       Toast toast = new Toast(form);
       toast.setGravity(Gravity.CENTER, 0, 0);
