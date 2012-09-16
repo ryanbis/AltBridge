@@ -3,6 +3,7 @@ package com.xiledsystems.AlternateJavaBridgelib.components.altbridge;
 import java.util.ArrayList;
 import java.util.TimeZone;
 import android.annotation.TargetApi;
+import android.content.ActivityNotFoundException;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Intent;
@@ -11,6 +12,8 @@ import android.net.Uri;
 import android.provider.CalendarContract;
 import android.provider.CalendarContract.Events;
 import android.util.Log;
+import android.widget.Toast;
+
 import com.xiledsystems.AlternateJavaBridgelib.components.altbridge.util.Cal;
 import com.xiledsystems.AlternateJavaBridgelib.components.altbridge.util.CalendarEvent;
 
@@ -34,16 +37,24 @@ public class DeviceCalendar extends AndroidNonvisibleComponent {
 	 * Galaxy SII, with 4.0.4 on it, and this method force closes
 	 * when used. The addEvent() method works fine, however.
 	 * 
+	 * If the device doesn't support it, a notifier message
+	 * will be thrown to the user saying that calendar
+	 * intents are not available on this device.
+	 * 
 	 * @param event
 	 */
-	public void pushEvent(CalendarEvent event) {
+	public void pushEvent(CalendarEvent event) {	  
 		Intent intent = new Intent(Intent.ACTION_INSERT).
 		    setData(CalendarContract.Events.CONTENT_URI).
 		    putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, event.startTime()).
 		    putExtra(CalendarContract.EXTRA_EVENT_END_TIME, event.endTime()).
 		    putExtra(Events.TITLE, event.Title()).
 		    putExtra(Events.DESCRIPTION, event.Description());
-		container.$context().startActivity(intent);
+		try {
+		  container.$context().startActivity(intent);
+		} catch (ActivityNotFoundException e) {
+		  Toast.makeText(getContext(), "Calendar Intents are not available on this device.", Toast.LENGTH_LONG).show();
+		}
 	}
 	
 	/**

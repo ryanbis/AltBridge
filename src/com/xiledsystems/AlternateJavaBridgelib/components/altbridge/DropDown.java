@@ -51,7 +51,6 @@ public class DropDown extends AndroidViewComponent implements OnItemSelectedList
 		android.widget.Spinner view = (Spinner) container.$form().findViewById(resourceId);
 		view.setOnItemSelectedListener(this);
 		
-		//container.$add(this);
 		elements = new ArrayList<String>();
 	}
 	

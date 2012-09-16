@@ -88,11 +88,13 @@ public class PhoneNumberPicker extends ContactPicker {
             int contactId = cursor.getInt(PERSON_INDEX);
             Uri cUri = ContentUris.withAppendedId(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, contactId);
             contactPictureUri = cUri.toString();
-            String emailId = guardCursorGetString(cursor, EMAIL_INDEX);
-            emailAddress = getEmailAddress(emailId);
+            //String emailId = guardCursorGetString(cursor, EMAIL_INDEX);
+            // getting the email address is causing an exception, comment out this
+            // for now.
+            //emailAddress = getEmailAddress(emailId);
             Log.i("PhoneNumberPicker",
                 "Contact name = " + contactName + ", phone number = " + phoneNumber +
-                ", emailAddress = " + emailAddress + ", contactPhotoUri = " +  contactPictureUri);
+                /*", emailAddress = " + emailAddress +*/ ", contactPhotoUri = " +  contactPictureUri);
           }
         } catch (Exception e) {
           // There was an exception in trying to compute the cursor from the activity context.

@@ -13,7 +13,12 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Handler;
 import android.util.Log;
+import android.view.Gravity;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 
@@ -56,6 +61,9 @@ public final class Notifier extends AndroidNonvisibleComponent implements Compon
   	private int noteColor = -1;
   	private int flashOn;
   	private int flashOff;
+  	private int layoutRes;
+  	private int textRes;
+  	private int rootRes;
   
 
   /**
@@ -282,6 +290,12 @@ public void ShowDialog(String message, String title, final String... buttonText)
     EventDispatcher.dispatchEvent(this, "AfterTextInput", response);
   }
 
+  public void CustomAlertLayout(int layoutRes, int rootRes, int textViewRes) {
+    this.layoutRes = layoutRes;
+    this.textRes = textViewRes;
+    this.rootRes = rootRes;
+  }
+  
   /**
    * Display a temporary notification
    *
@@ -292,14 +306,30 @@ public void ShowDialog(String message, String title, final String... buttonText)
     handler.post(new Runnable() {
       public void run() {
     	  if (isaService) {
-    		  Toast.makeText(sContainer.$formService(), notice, Toast.LENGTH_LONG).show();
+    		  Toast.makeText(getContext(), notice, Toast.LENGTH_LONG).show();
     	  } else {
-    		  Toast.makeText(container.$context(), notice, Toast.LENGTH_LONG).show();
+    		  showToastAlert(container.$form(), notice);
     	  }
       }
     });
   }
   
+  private void showToastAlert(Form form, String notice) {
+    if (layoutRes != 0 && textRes != 0 && rootRes != 0) {
+      LayoutInflater inflater = form.getLayoutInflater();
+      View layout = inflater.inflate(layoutRes, (ViewGroup) form.findViewById(rootRes));
+      TextView text = (TextView) form.findViewById(textRes);
+      text.setText(notice);
+      Toast toast = new Toast(form);
+      toast.setGravity(Gravity.CENTER, 0, 0);
+      toast.setDuration(Toast.LENGTH_LONG);
+      toast.setView(layout);
+      toast.show();      
+    } else {
+      Toast.makeText(form, notice, Toast.LENGTH_LONG).show();
+    }
+  }
+
   /**
    * Display a message on the phone's notification bar. This will also play the user's
    * default sound for notifications.
