@@ -14,6 +14,8 @@ public class ThreadTimer extends AndroidNonvisibleComponent implements OnResumeL
 	private boolean autoToggle=false;	
 	private final Runnable threadRunner;
 	private boolean started;
+	private int delayTime;
+	private String name = "";
 	
 	
 	/**
@@ -36,8 +38,17 @@ public class ThreadTimer extends AndroidNonvisibleComponent implements OnResumeL
 				int sleepTime;
 				long beginTime;
 				long timeDiff;				
+				boolean firstrun=true;
 				while (running) {					
 					// Here we setup a loop to keep running the dipatched event.
+				    if (firstrun) {
+				      try {
+		                  Thread.sleep(delayTime);
+		                } catch (InterruptedException e) {
+		                  
+		                }
+				      firstrun = false;
+				    }
 					
 					beginTime = System.currentTimeMillis();
 					
@@ -77,7 +88,8 @@ public class ThreadTimer extends AndroidNonvisibleComponent implements OnResumeL
 			public void run() {				
 				int sleepTime;
 				long beginTime;
-				long timeDiff;				
+				long timeDiff;		
+				boolean firstrun=true;
 				while (running) {					
 					// Here we setup a loop to keep running the dipatched event.
 					if (Thread.interrupted()) {
@@ -85,6 +97,14 @@ public class ThreadTimer extends AndroidNonvisibleComponent implements OnResumeL
 						running = false;
 						return;
 					}
+					if (firstrun) {
+                      try {
+                          Thread.sleep(delayTime);
+                        } catch (InterruptedException e) {
+                          
+                        }
+                      firstrun = false;
+                    }
 					beginTime = System.currentTimeMillis();
 					
 					dispatchTimerEvent();
@@ -114,7 +134,8 @@ public class ThreadTimer extends AndroidNonvisibleComponent implements OnResumeL
 			public void run() {				
 				int sleepTime;
 				long beginTime;
-				long timeDiff;				
+				long timeDiff;		
+				boolean firstrun=true;
 				while (running) {					
 					// Here we setup a loop to keep running the dipatched event.
 					if (Thread.interrupted()) {
@@ -122,6 +143,14 @@ public class ThreadTimer extends AndroidNonvisibleComponent implements OnResumeL
 						running = false;
 						return;
 					}
+					if (firstrun) {
+                      try {
+                          Thread.sleep(delayTime);
+                        } catch (InterruptedException e) {
+                          
+                        }
+                      firstrun = false;
+                    }
 					beginTime = System.currentTimeMillis();
 					
 					runAction(action);
@@ -153,6 +182,28 @@ public class ThreadTimer extends AndroidNonvisibleComponent implements OnResumeL
 	 */
 	public int Interval() {
 		return this.interval;
+	}
+	
+	/**
+	 * This sets the amount of time that the timer is
+	 * delayed when first setting Enabled() to true.
+	 * 
+	 * @param time Amount of time in ms to delay
+	 */
+	public void DelayTime(int time) {
+	  delayTime = time;
+	}
+	
+	public int DelayTime() {
+	  return delayTime;
+	}
+
+	public void ThreadName(String name) {
+	  this.name = name;
+	}
+	
+	public String ThreadName() {
+	  return name;
 	}
 	
 	/**
@@ -230,10 +281,18 @@ public class ThreadTimer extends AndroidNonvisibleComponent implements OnResumeL
 					Thread.State state = thread.getState();				
 					
 					if (!state.equals(Thread.State.NEW)) {
+					  if (name.equals("")) {
 						thread = new Thread(threadRunner);
+					  } else {
+					    thread = new Thread(threadRunner, name);
+					  }
 					}
 				} else {
-					thread = new Thread(threadRunner);
+				  if (name.equals("")) {
+				    thread = new Thread(threadRunner);
+				  } else {
+					thread = new Thread(threadRunner, name);
+				  }
 				}
 				thread.start();			
 				isRunning=true;
@@ -316,8 +375,12 @@ public class ThreadTimer extends AndroidNonvisibleComponent implements OnResumeL
 	public void onResume() {		
 		if (autoToggle) {
 			
-			if (thread == null) {				
-				thread = new Thread(threadRunner);
+			if (thread == null) {	
+			  if (name.equals("")) {
+			    thread = new Thread(threadRunner);
+			  } else {
+			    thread = new Thread(threadRunner, name);
+			  }
 				if (started) {
 					this.running = true;
 					thread.start();
@@ -327,7 +390,11 @@ public class ThreadTimer extends AndroidNonvisibleComponent implements OnResumeL
 			this.running = true;
 			Thread.State state = thread.getState();
 			if (state.equals(Thread.State.TERMINATED) || state.equals(Thread.State.WAITING)) {
+			  if (name.equals("")) {
 				thread = new Thread(threadRunner);
+			  } else {
+			    thread = new Thread(threadRunner, name);
+			  }
 			}
 			try {
 				thread.start();

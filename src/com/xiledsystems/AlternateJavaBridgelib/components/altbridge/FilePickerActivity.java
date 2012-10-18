@@ -51,6 +51,9 @@ public class FilePickerActivity extends ListActivity {
 		
 		Intent intent = getIntent();
 		
+		if (intent.hasExtra(FilePicker.FILE_CACHE)) {
+		  getListView().setCacheColorHint(0);
+		}
 		if (intent.hasExtra(FilePicker.LAYOUT_ID)) {
 			setContentView(intent.getIntExtra(FilePicker.LAYOUT_ID, android.R.layout.simple_list_item_2));
 			top = (Button) findViewById(getResources().getIdentifier("topBtn", "id", getPackageName()));
@@ -79,6 +82,9 @@ public class FilePickerActivity extends ListActivity {
 		
 		File file = new File(Environment.getExternalStorageDirectory(), currentDir);
 		File[] filelist = file.listFiles();
+		if (filelist == null) {
+		  filelist = new File[0];
+		}
 		
 		if (rowlayoutid > 0) {
 			

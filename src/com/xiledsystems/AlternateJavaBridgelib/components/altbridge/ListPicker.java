@@ -34,6 +34,7 @@ public class ListPicker extends Picker implements ActivityResultListener, Delete
   public static final String LIST_ACTIVITY_LAYOUT = LIST_ACTIVITY_CLASS + ".layout";
   public static final String LIST_ACTIVITY_TEXTVIEWID = LIST_ACTIVITY_CLASS + ".textViewId";
   public static final String LIST_ACTIVITY_HEADERS = LIST_ACTIVITY_CLASS + ".headers";
+  public static final String LIST_ACTIVITY_CACHEHINT = LIST_ACTIVITY_CLASS + ".cacheHint";
   private int textViewId = android.R.id.text1;			// Default textview ID to populate info into
   private int layout=android.R.layout.simple_list_item_1; // This is the default layout view of the listpicker
 
@@ -48,6 +49,7 @@ public class ListPicker extends Picker implements ActivityResultListener, Delete
   private int text1;
   private int text2;
   private int imgView;
+  private boolean invisibleCache;
   
   /**
    * Create a new ListPicker component.
@@ -87,6 +89,21 @@ public class ListPicker extends Picker implements ActivityResultListener, Delete
   
   public String[] Selections() {
 	  return selections;
+  }
+  
+  /**
+   * This makes the background clear when scrolling in the list
+   * activity (needed if you set a global theme with a background
+   * or color.
+   * 
+   * @param invisible
+   */
+  public void InvisibleCache(boolean invisible) {
+    invisibleCache = invisible;
+  }
+  
+  public boolean InvisibleCache() {
+    return invisibleCache;
   }
   
   
@@ -283,6 +300,9 @@ public class ListPicker extends Picker implements ActivityResultListener, Delete
 			PickerList list = new PickerList(custItems);
 			b.putParcelable(LIST_CUSTOM_ITEMS, list);
 			intent.putExtras(b);
+		}
+		if (invisibleCache) {
+		  intent.putExtra(LIST_ACTIVITY_CACHEHINT, true);
 		}
 		return intent;		
 	}

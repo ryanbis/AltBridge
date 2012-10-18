@@ -41,6 +41,9 @@ public class ListPickerActivity extends ListActivity {
     int layout = 0;
     int textViewId=0;
     Intent myIntent = getIntent();
+    if (myIntent.hasExtra(ListPicker.LIST_ACTIVITY_CACHEHINT)) {
+      getListView().setCacheColorHint(0);
+    }
     if (myIntent.hasExtra(ListPicker.LIST_ACTIVITY_ARG_NAME)) {
       items = getIntent().getStringArrayExtra(ListPicker.LIST_ACTIVITY_ARG_NAME);
       if (myIntent.hasExtra(ListPicker.LIST_ACTIVITY_HEADERS)) {

@@ -970,6 +970,10 @@ public class SimpleSQL extends AndroidNonvisibleComponent implements OnDestroySv
 		}
 	}
 	
+	public void clearMemory() {
+	  SQLiteDatabase.releaseMemory();
+	}
+	
 	/**
 	 * If this is set to true, the db will not be cleared from memory when the 
 	 * form loses focus. It will still get cleared from memory if the

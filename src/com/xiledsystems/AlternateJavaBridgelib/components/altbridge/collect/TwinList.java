@@ -23,14 +23,19 @@ public class TwinList<List1Type, List2Type> implements Serializable {
 		list2 = new ArrayList<List2Type>();
 	}
 	
+	public TwinList(int sizeLimit) {
+      list1 = new ArrayList<List1Type>(sizeLimit);
+      list2 = new ArrayList<List2Type>(sizeLimit);
+  }
+	
 	public TwinList(ArrayList<List1Type> list1, ArrayList<List2Type> list2) {
 		this.list1 = list1;
 		this.list2 = list2;
 	}
 	
 	public TwinList(TwinList list) {
-		list1 = list.getFirstList();
-		list2 = list.getSecondList();
+		list1 = new ArrayList<List1Type>(list.getFirstList());
+		list2 = new ArrayList<List2Type>(list.getSecondList());
 	}
 	
 	/**

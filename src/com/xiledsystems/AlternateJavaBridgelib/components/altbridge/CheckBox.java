@@ -35,6 +35,8 @@ public class CheckBox extends AndroidViewComponent
 
   // Backing for text color
   private int textColor;
+  
+  private boolean manualCheck;
 
   /**
    * Creates a new CheckBox component.
@@ -402,11 +404,31 @@ public class CheckBox extends AndroidViewComponent
 		  view.invalidate();
 	  }
   }
+  
+  /**
+   * Checked property setter method. This method will NOT throw the
+   * Changed event when used (unlike the Checked() method)
+   *
+   * @param value  {@code true} indicates checked, {@code false} unchecked
+   */
+  
+  public void ManualChecked(boolean value) {
+      if (resourceId!=-1) {
+          ((android.widget.CheckBox) container.$context().findViewById(resourceId)).setChecked(value);
+          ((android.widget.CheckBox) container.$context().findViewById(resourceId)).invalidate();
+      } else {
+          manualCheck = true;
+          view.setChecked(value);
+          view.invalidate();
+      }
+  }
 
   // OnCheckedChangeListener implementation
 
   public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-    Changed();
+    if (!manualCheck) {
+      Changed();
+    }
   }
 
   // OnFocusChangeListener implementation

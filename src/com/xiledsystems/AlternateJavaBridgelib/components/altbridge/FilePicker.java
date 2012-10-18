@@ -17,13 +17,15 @@ public class FilePicker extends Picker implements ActivityResultListener, Delete
 	public static final String SHOW_HIDDEN = FILE_PICKER_ACTIVITY_CLASS + ".showhidden";
 	public static final String FILE_PREFS = FILE_PICKER_ACTIVITY_CLASS + ".prefs";
 	public static final String FILE_ADAPTER = FILE_PICKER_ACTIVITY_CLASS + ".adapter";
-	public static final String FILE_RESULT = FILE_PICKER_ACTIVITY_CLASS + ".result"; 
+	public static final String FILE_RESULT = FILE_PICKER_ACTIVITY_CLASS + ".result";
+	public static final String FILE_CACHE = FILE_PICKER_ACTIVITY_CLASS + ".cache";
 	
 	
 	private int rowLayoutId;
 	private int layoutId;
 	private String filePath;
 	private boolean showHidden;
+	private boolean invisibleCache;
 	
 	/**
 	 * Constructor for FilePicker.
@@ -76,6 +78,21 @@ public class FilePicker extends Picker implements ActivityResultListener, Delete
 		this.layoutId = layoutId;
 	}
 	
+	 /**
+	   * This makes the background clear when scrolling in the list
+	   * activity (needed if you set a global theme with a background
+	   * or color.
+	   * 
+	   * @param invisible
+	   */
+	  public void InvisibleCache(boolean invisible) {
+	    invisibleCache = invisible;
+	  }
+	  
+	  public boolean InvisibleCache() {
+	    return invisibleCache;
+	  }
+	
 	public void rowLayout(int rowLayoutId) {
 		this.rowLayoutId = rowLayoutId;
 	}
@@ -109,6 +126,9 @@ public class FilePicker extends Picker implements ActivityResultListener, Delete
 		}
 		if (showHidden) {
 			intent.putExtra(SHOW_HIDDEN, showHidden);
+		}
+		if (invisibleCache) {
+		  intent.putExtra(FILE_CACHE, true);
 		}
 				
 		return intent;	

@@ -100,7 +100,7 @@ public class FormService extends Service implements Component, SvcComponentConta
 		}
         activeFormService = this;
                         
-        EventDispatcher.dispatchEvent(this, "onStartCommand", intent);
+        EventDispatcher.dispatchEvent(this, "onStartCommand", intent, startId);
         if (intent != null) {
         	if (intent.hasExtra(Form.ALARM_EVENT)) {
         		int alarmId = intent.getIntExtra(Form.ALARM_EVENT, 0);

@@ -35,6 +35,7 @@ public class Events {
 	public final static String ERROR_OCCURED = "ErrorOccured";
 	public final static String FORM_SVC_MSG = "FormServiceMessage";
 	public final static String GOT_VALUE = "GotValue";
+	public final static String GOT_TEXT = "GotText";
 	public final static String LOCATION_CHANGED = "LocationChanged";
 	public final static String ON_START_CMD = "onStartCommand";
 	public final static String ORIENTATION_CHANGED = "OrientationChanged";

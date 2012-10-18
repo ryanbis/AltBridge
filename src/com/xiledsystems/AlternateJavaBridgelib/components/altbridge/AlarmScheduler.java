@@ -59,15 +59,12 @@ public class AlarmScheduler extends AndroidNonvisibleComponent implements OnStar
 	 * @param timeToWake - The time in ms to have this alarm go off
 	 * @param classToOpen - The class to wake when this alarm goes off (can be form or formservice)
 	 * @param isService - Set this to true if you want the alarm to wake a service
+	 * 
+	 * @return the alarmId used for this alarm (this is returned as args[0] in the thrown event)
 	 */
-	public void addAlarm(String tag, long timeToWake, Class<?> classToOpen, boolean isService) {
-		Context context;
-		if (container == null) {
-			context = sContainer.$context();
-		} else {
-			context = container.$context();
-		}
-		
+	public int addAlarm(String tag, long timeToWake, Class<?> classToOpen, boolean isService) {
+		Context context = getContext();
+				
 		AlarmManager am = (AlarmManager) context.getSystemService(Activity.ALARM_SERVICE);
 		Intent intent;
 		intent = new Intent(context, classToOpen);
@@ -86,6 +83,7 @@ public class AlarmScheduler extends AndroidNonvisibleComponent implements OnStar
 		} else {
 			pintent = PendingIntent.getActivity(context, alarmId, intent, PendingIntent.FLAG_CANCEL_CURRENT);
 		}
+		int alId = alarmId;
 		alarmId++;
 		am.set(AlarmManager.RTC_WAKEUP, timeToWake, pintent);
 		AlarmIntent aIntent = new AlarmIntent(alarmId, false, classToOpen);
@@ -97,6 +95,7 @@ public class AlarmScheduler extends AndroidNonvisibleComponent implements OnStar
 		synchronized (registeredAlarms) {
 			registeredAlarms.StoreValue(ALARM, wakeTimes);
 		}
+		return alId;
 	}
 	
 	/**

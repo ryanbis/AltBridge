@@ -15,12 +15,18 @@ public class WebViewer extends AndroidViewComponent {
 	
 	private String url;
 
+	private boolean followLinks;
+	
 	public WebViewer(ComponentContainer container) {
 		super(container);
 		view = new WebView(container.$context());
+		view.setWebViewClient(new WebViewerClient());
 		view.getSettings().setJavaScriptEnabled(true);
-		container.$context().getWindow().requestFeature(Window.FEATURE_PROGRESS);
-		view.setWebChromeClient(new WebViewerClient());
+		view.getSettings().setBuiltInZoomControls(true);
+		view.setFocusable(true);
+		//container.$context().getWindow().requestFeature(Window.FEATURE_PROGRESS);
+		container.$add(this);
+		
 		
 	}
 	
@@ -28,8 +34,10 @@ public class WebViewer extends AndroidViewComponent {
 		super(container, resourceId);
 		view = (WebView) container.$context().findViewById(resourceId);
 		view.getSettings().setJavaScriptEnabled(true);
-		container.$context().getWindow().requestFeature(Window.FEATURE_PROGRESS);
-		view.setWebChromeClient(new WebViewerClient());
+		view.getSettings().setBuiltInZoomControls(true);
+		view.setFocusable(true);
+		//container.$context().getWindow().requestFeature(Window.FEATURE_PROGRESS);
+		view.setWebViewClient(new WebViewerClient());
 	}
 	
 	public void Url(String url) {
@@ -38,6 +46,14 @@ public class WebViewer extends AndroidViewComponent {
 	
 	public String Url() {
 		return url;
+	}
+	
+	public void FollowLinks(boolean follow) {
+	  followLinks = follow;
+	}
+	
+	public boolean FollowLinks() {
+	  return followLinks;
 	}
 	
 	public void Go() {
@@ -62,10 +78,10 @@ public class WebViewer extends AndroidViewComponent {
 		EventDispatcher.dispatchEvent(this, Events.ANIM_MIDDLE);
 	}
 	
-	private class WebViewerClient extends WebChromeClient {
+	private class WebViewerClient extends WebViewClient {
 		@Override
-		public void onProgressChanged(WebView view, int progress) {
-			container.$context().setProgress(progress * 1000);
+		public boolean shouldOverrideUrlLoading(WebView view, String url) {
+		  return !followLinks;
 		}
 	}
 

@@ -240,6 +240,39 @@ public void ShowDialog(String message, String title, final String... buttonText)
 	    EventDispatcher.dispatchEvent(this, "AfterChoosing");
 	  }
 
+  public void ShowTextDialogPreText(String message, String title, String enteredText) {
+    textInputAlert(message, title, enteredText);
+  }
+  
+  private void textInputAlert(String message, String title, String enteredText) {
+    Log.i(LOG_TAG, "Text input alert: " + message);
+    AlertDialog alertDialog;
+    if (isaService) {
+        alertDialog = new AlertDialog.Builder(sContainer.$formService()).create();
+    } else {
+        alertDialog = new AlertDialog.Builder(container.$context()).create();
+    }
+    alertDialog.setTitle(title);
+    alertDialog.setMessage(message);
+    // Set an EditText view to get user input
+    final EditText input;
+    if (isaService) {
+        input = new EditText(sContainer.$formService());
+    } else {
+        input = new EditText(container.$context());
+    }
+    input.setText(enteredText);
+    alertDialog.setView(input);
+    // prevents the user from escaping the dialog by hitting the Back button
+    alertDialog.setCancelable(false);
+    alertDialog.setButton("OK",
+        new DialogInterface.OnClickListener() {
+      public void onClick(DialogInterface dialog, int which) {
+        AfterTextInput(input.getText().toString());
+      }
+    });
+    alertDialog.show();
+  }
   
   public void ShowTextDialog(String message, String title) {
     textInputAlert(message, title);
