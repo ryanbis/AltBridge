@@ -19,7 +19,7 @@ import com.xiledsystems.AlternateJavaBridgelib.components.events.EventDispatcher
  */
 
 
-public final class Clock extends AndroidNonvisibleComponent
+public class Clock extends AndroidNonvisibleComponent
     implements Component, AlarmHandler, OnStopListener, OnResumeListener, OnDestroyListener, OnDestroySvcListener, Deleteable {
 
   private TimerInternal timerInternal;

@@ -772,7 +772,7 @@ protected String getFormName() {
    * {@link com.google.devtools.simple.scripts.LangDefXmlGenerator},
    * respectively.  The actual implementation appears in {@code runtime.scm}.
    */
-  void $define() {
+  protected void $define() {
     throw new UnsupportedOperationException();
   }
   

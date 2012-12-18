@@ -1,6 +1,5 @@
 package com.xiledsystems.AlternateJavaBridgelib.components.altbridge;
 
-import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -11,6 +10,7 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.StreamCorruptedException;
 import java.util.ArrayList;
+import android.app.Activity;
 import android.content.Context;
 import android.os.Environment;
 import android.util.Log;
@@ -25,21 +25,51 @@ import com.xiledsystems.AlternateJavaBridgelib.components.Component;
 public class TinyDB extends AndroidNonvisibleComponent implements Component, Deleteable {
 
   
-	private boolean isaService = false;
 	private boolean logErrors = true;
+	
+	
   /**
    * Creates a new TinyDB component.
    *
    * @param container the Form that this component is contained in.
    */
   public TinyDB(ComponentContainer container) {
-    super(container);
-    isaService = false;
+    super(container);    
   }
   
   public TinyDB(SvcComponentContainer container) {
-	  super(container);
-	  isaService = true;
+	  super(container);	  
+  }
+  
+  /**
+   * Use this constructor at your own risk. Not everything will work, as there
+   * is no parent container. (Only the store and get values from SD will work)
+   */
+  public TinyDB() {    
+    super(new ComponentContainer() {      
+      @Override
+      public void setChildWidth(AndroidViewComponent component, int width) {
+      }
+      
+      @Override
+      public void setChildHeight(AndroidViewComponent component, int height) {
+      }
+      
+      @Override
+      public Form $form() {
+        return null;
+      }
+      
+      @Override
+      public Activity $context() {
+        return null;
+      }
+      
+      @Override
+      public void $add(AndroidViewComponent component) {        
+      }
+    });
+        
   }
 
   
@@ -47,11 +77,7 @@ public class TinyDB extends AndroidNonvisibleComponent implements Component, Del
   public void StoreValue(final String tag, final Object valueToStore) {
 	  try {
 			Context context;
-		    if (isaService) {
-		    	context = sContainer.$formService().$context();
-		    } else {
-		    	context = container.$form().$context();
-		    }
+		    context = getContext();		    
 			FileOutputStream fos = context.openFileOutput(tag, Context.MODE_PRIVATE);
 			ObjectOutputStream os = new ObjectOutputStream(fos);
 			os.writeObject(valueToStore);
@@ -106,8 +132,7 @@ public class TinyDB extends AndroidNonvisibleComponent implements Component, Del
   
   public Object GetValueFromSD(final String tag) {
 	  Object value = new Object();
-	  try {
-		  Context context = getContext();
+	  try {		  
 		  File file = new File(Environment.getExternalStorageDirectory(), tag);
 		  if (!file.exists()) {
 			  if (logErrors) {
@@ -118,6 +143,7 @@ public class TinyDB extends AndroidNonvisibleComponent implements Component, Del
 		  FileInputStream filestream = new FileInputStream(file);
 		  ObjectInputStream ois = new ObjectInputStream(filestream);
 		  value = ois.readObject();
+		  ois.close();
 	  } catch (IOException e) {
 		  e.printStackTrace();
 		  return "null";
@@ -134,15 +160,12 @@ public class TinyDB extends AndroidNonvisibleComponent implements Component, Del
   public Object GetValue(final String tag) {
 	  Object value=new Object();
 		try {
-			Context context;
-			if (isaService) {
-				context = sContainer.$context();
-			} else {
-				context = container.$context();
-			}
+			Context context;			
+			context = getContext();			
 			FileInputStream filestream = context.openFileInput(tag);	
 			ObjectInputStream ois = new ObjectInputStream(filestream); 	 
 			value = ois.readObject();
+			ois.close();
 		} catch (FileNotFoundException e) {
 			if (logErrors) {
 				Log.e("TinyDB", "File not found!"+ " "+tag);

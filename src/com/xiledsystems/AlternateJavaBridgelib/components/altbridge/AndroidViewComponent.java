@@ -53,6 +53,7 @@ public abstract class AndroidViewComponent extends VisibleComponent implements O
   private float depth = 100f;
   private int curRep = 0;
   private boolean secondAnim;
+  private boolean resetAfter = true;
   
   
   // For animationdrawable implementation
@@ -244,6 +245,17 @@ public abstract class AndroidViewComponent extends VisibleComponent implements O
   }
   
   /**
+   * If set to true (default) this component will reset itself
+   * back to it's original position after the animation is
+   * finished.
+   * 
+   * @param reset
+   */
+  public void ResetAfter(boolean reset) {
+    resetAfter = reset;
+  }
+  
+  /**
    * This starts a view animation on this component. The default animation
    * types are stored as static ints in Form, and start with ANIM_.
    * 
@@ -270,8 +282,11 @@ public abstract class AndroidViewComponent extends VisibleComponent implements O
 			  Animation a = new TranslateAnimation(animArray[0], animArray[1], animArray[2], animArray[3]);
 			  a.setDuration(animDuration);
 			  a.setStartOffset(startOffset);
-			  a.setRepeatMode(Animation.RESTART);			  
-			  a.setRepeatCount(repeatMode);		  
+			  if (!resetAfter) {
+			    a.setRepeatMode(Animation.RESTART);
+			  }
+			  a.setRepeatCount(repeatMode);			  
+			  a.setFillAfter(!resetAfter);
 			  a.setInterpolator(AnimationUtils.loadInterpolator(container.$context(), animationType));
 			  a.setAnimationListener(new ComponentAnimListener());
 			  target.startAnimation(a);

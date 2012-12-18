@@ -141,7 +141,7 @@ public class SoapClient extends AndroidNonvisibleComponent {
 	 */
 	public void SendResponseEvent(final String response) {				
 		soapResponse = response;
-		if (container == null) {
+		if (container != null) {
 			container.$form().post(new Runnable() {			
 				@Override
 				public void run() {

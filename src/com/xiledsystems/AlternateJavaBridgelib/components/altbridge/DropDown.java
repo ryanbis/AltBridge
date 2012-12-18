@@ -123,7 +123,7 @@ public class DropDown extends AndroidViewComponent implements OnItemSelectedList
     if (view == null) {
       ((android.widget.Spinner) container.$form().findViewById(resourceId)).setPrompt(prompt);
     } else {
-      view.setPrompt(prompt);      
+      view.setPrompt(prompt);    
     }
   }
   
@@ -134,8 +134,10 @@ public class DropDown extends AndroidViewComponent implements OnItemSelectedList
   public void PerformClick() {
     if (view == null) {
       ((android.widget.Spinner) container.$form().findViewById(resourceId)).performClick();
+      ((android.widget.Spinner) container.$form().findViewById(resourceId)).setOnItemSelectedListener(this);
     } else {
       view.performClick();
+      view.setOnItemSelectedListener(this);
     }
   }
 
@@ -246,7 +248,7 @@ public class DropDown extends AndroidViewComponent implements OnItemSelectedList
   @Override
   public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
     if (initialized && !manual) {
-      EventDispatcher.dispatchEvent(this, "AfterSelection", parent.getItemAtPosition(pos));
+      EventDispatcher.dispatchEvent(this, "AfterSelection", parent.getItemAtPosition(pos), pos);
       current = parent.getItemAtPosition(pos).toString();
     }
     if (manual) {

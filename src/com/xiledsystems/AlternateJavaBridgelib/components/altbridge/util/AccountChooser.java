@@ -185,7 +185,7 @@ public class AccountChooser {
             .setTitle(Html.fromHtml(chooseAccountPrompt))
             .setOnCancelListener(SelectAccount.this)
             .setSingleChoiceItems(accountNames, -1, SelectAccount.this);
-          ab.show();
+          ab.create().show();
           Log.i(LOG_TAG, "Dialog showing!");
         }
       });

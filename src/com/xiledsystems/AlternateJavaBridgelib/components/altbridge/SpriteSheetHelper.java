@@ -112,6 +112,11 @@ public class SpriteSheetHelper extends AndroidNonvisibleComponent implements OnD
 		ArrayList<SheetInfo> tmplist = new ArrayList<SheetInfo>(sheetInfo);
 		int size = sheetInfo.size();
 		
+		ArrayList<String> oldOrder = new ArrayList<String>();
+		for (int i = 0; i < size; i++) {
+		  oldOrder.add(tmplist.get(i).getName());
+		}
+		
 		// Clear the list before we start adding to it.
 		sheetInfo.clear();
 		for ( int i = 0; i < size; i++) {
@@ -121,8 +126,9 @@ public class SpriteSheetHelper extends AndroidNonvisibleComponent implements OnD
 			// We have to iterate through the tmp list to find the index
 			// of the name given
 			for (int x = 0; x < size; x++) {
-				if (tmplist.get(x).getName().equals(names.get(i))) {
-					oldindex = x;					
+				if (oldOrder.get(x).equalsIgnoreCase(names.get(i))) {
+					oldindex = x;			
+					break;
 				}
 			}
 			if (oldindex == -2) {

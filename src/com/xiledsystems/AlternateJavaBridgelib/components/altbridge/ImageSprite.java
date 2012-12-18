@@ -751,11 +751,9 @@ public class ImageSprite extends Sprite implements OnStopListener, OnResumeListe
 							curframe = customAnimFrames[x];
 							beginTime = System.currentTimeMillis();
 							curFrame(curframe);
-							androidUIhandler.post(new Runnable() {
-								
+							androidUIhandler.post(new Runnable() {								
 								@Override
-								public void run() {
-									
+								public void run() {									
 									gotoFrame(currentFrame);							
 								}
 							});
@@ -763,16 +761,16 @@ public class ImageSprite extends Sprite implements OnStopListener, OnResumeListe
 							timeDiff = System.currentTimeMillis() - beginTime;
 							sleepTime = (int) (framePeriod - timeDiff);
 							
+							while (sleepTime < 0) {
+                              sleepTime += framePeriod;
+                              x++;
+                            }
+							
 							if (sleepTime > 0) {
-								try {
-									
+								try {									
 									Thread.sleep(sleepTime);
 								} catch (InterruptedException e) {}
-							}
-							
-							while (sleepTime < 0) {
-								sleepTime += framePeriod;
-							}
+							}					
 							
 							x++;
 							if (x>=customAnimFrames.length) {
