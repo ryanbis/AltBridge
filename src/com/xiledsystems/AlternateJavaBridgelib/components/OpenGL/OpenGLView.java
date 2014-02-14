@@ -1,9 +1,11 @@
 package com.xiledsystems.AlternateJavaBridgelib.components.OpenGL;
 
+import android.annotation.SuppressLint;
 import android.opengl.GLSurfaceView;
 import android.view.MotionEvent;
 
 
+@SuppressLint("ViewConstructor")
 public class OpenGLView extends GLSurfaceView  {
 	
 	protected GLRenderer renderer;
@@ -17,7 +19,7 @@ public class OpenGLView extends GLSurfaceView  {
 	protected float canvasCoordYRatio;
 	
 	public OpenGLView(OpenGLCanvas context) {
-		super(context.$form().$context());		
+		super(context.getRegistrar().$context());		
 		updateThread = new Updater(this);
 				
 		canvas = context;
@@ -34,7 +36,7 @@ public class OpenGLView extends GLSurfaceView  {
 	}
 	
 	public void postOnGLThread(Runnable run) {
-		renderer.post(run);
+		renderer.postOnGLThread(run);
 	}
 	
 	public void addObject(GLObject object) {

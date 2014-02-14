@@ -104,6 +104,12 @@ public final class ErrorMessages {
   public static final int ERROR_WEB_HTML_TEXT_DECODE_FAILED = 1106;
   public static final int ERROR_WEB_MALFORMED_URL = 1109;
   public static final int ERROR_WEB_BUILD_POST_DATA_NOT_TWO_STRINGS = 1112;
+  
+  // AltWeb errors
+  public static final int ERROR_ALTWEB_CLIENT_PROTOCOL_EXCEPTION = 1201;
+  public static final int ERROR_ALTWEB_IO_EXCEPTION = 1202;
+  public static final int ERROR_ALTWEB_URL_EXCEPTION = 1203;
+  
   // Contact picker (and PhoneNumberPicker) errors
   public static final int ERROR_PHONE_UNSUPPORTED_CONTACT_PICKER = 1107;
   public static final int ERROR_PHONE_UNSUPPORTED_SEARCH_IN_CONTACT_PICKING = 1108;
@@ -283,7 +289,13 @@ public final class ErrorMessages {
     errorMessages.put(ERROR_PHONE_UNSUPPORTED_CONTACT_PICKER,
         "The software used in this app cannot extract contacts from this type of phone.");
     errorMessages.put(ERROR_PHONE_UNSUPPORTED_SEARCH_IN_CONTACT_PICKING,
-        "To pick contacts, pick them directly, without using search.");
+            "To pick contacts, pick them directly, without using search.");
+    errorMessages.put(ERROR_ALTWEB_CLIENT_PROTOCOL_EXCEPTION, 
+       		"AltWeb component received a Client Protocol Exception.");
+    errorMessages.put(ERROR_ALTWEB_IO_EXCEPTION, 
+       		"AltWeb component received an IO Exception.");
+    errorMessages.put(ERROR_ALTWEB_URL_EXCEPTION, 
+       		"AltWeb component received an Illegal Argument exception. Please make sure the url is HTML encoded.");
   }
 
   private ErrorMessages() {

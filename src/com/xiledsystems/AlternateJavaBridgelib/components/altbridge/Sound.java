@@ -24,7 +24,7 @@ import com.xiledsystems.altbridge.BuildConfig;
 
 public class Sound extends AndroidNonvisibleComponent implements Component,
 		OnResumeListener, OnStopListener, OnInitializeListener, Deleteable,
-		OnDestroySvcListener {
+		OnDestroySvcListener, OnStartCommandListener {
 
 	private static final int MAX_STREAMS = 10;
 	private static final float VOLUME_FULL = 1.0f;
@@ -54,12 +54,12 @@ public class Sound extends AndroidNonvisibleComponent implements Component,
 		soundMap = new HashMap<String, Integer>();
 		resIdMap = new ArrayList<String[]>();
 		streamIds = new ArrayList<Map<String, Integer>>();
-		vibe = (Vibrator) container.$form().getSystemService(
+		vibe = (Vibrator) container.$context().getSystemService(
 				Context.VIBRATOR_SERVICE);
 		sourcePath = "";
-		container.$form().registerForOnResume(this);
-		container.$form().registerForOnStop(this);
-		container.$form().registerForOnInitialize(this);
+		container.getRegistrar().registerForOnResume(this);
+		container.getRegistrar().registerForOnStop(this);
+		container.getRegistrar().registerForOnInitialize(this);
 		this.isService = false;
 
 	}
@@ -70,12 +70,12 @@ public class Sound extends AndroidNonvisibleComponent implements Component,
 		soundMap = new HashMap<String, Integer>();
 		resIdMap = new ArrayList<String[]>();
 		streamIds = new ArrayList<Map<String, Integer>>();
-		vibe = (Vibrator) container.$form().getSystemService(
+		vibe = (Vibrator) container.$context().getSystemService(
 				Context.VIBRATOR_SERVICE);
 		sourcePath = "";
-		container.$form().registerForOnResume(this);
-		container.$form().registerForOnStop(this);
-		container.$form().registerForOnInitialize(this);
+		container.getRegistrar().registerForOnResume(this);
+		container.getRegistrar().registerForOnStop(this);
+		container.getRegistrar().registerForOnInitialize(this);
 		this.isService = false;
 
 	}
@@ -90,6 +90,7 @@ public class Sound extends AndroidNonvisibleComponent implements Component,
 				Context.VIBRATOR_SERVICE);
 		sourcePath = "";
 		container.$formService().registerForOnDestroy(this);
+		container.$formService().registerForOnStartCommand(this);
 		this.isService = true;
 
 	}
@@ -104,6 +105,7 @@ public class Sound extends AndroidNonvisibleComponent implements Component,
 				Context.VIBRATOR_SERVICE);
 		sourcePath = "";
 		container.$formService().registerForOnDestroy(this);
+		container.$formService().registerForOnStartCommand(this);
 		this.isService = true;
 
 	}
@@ -143,10 +145,10 @@ public class Sound extends AndroidNonvisibleComponent implements Component,
 							sContainer.$formService().getPackageName());
 		} else {
 			temp = container
-					.$form()
+					.$context()
 					.getResources()
 					.getIdentifier(filename, "raw",
-							container.$form().getPackageName());
+							container.$context().getPackageName());
 		}
 
 		if (initialized) {
@@ -156,7 +158,7 @@ public class Sound extends AndroidNonvisibleComponent implements Component,
 					tmp = MediaUtil.loadSoundPool(soundPool,
 							sContainer.$formService(), filename);
 				} else {
-					tmp = MediaUtil.loadSoundPool(soundPool, container.$form(),
+					tmp = MediaUtil.loadSoundPool(soundPool, container.$context(),
 							filename);
 				}
 
@@ -205,7 +207,7 @@ public class Sound extends AndroidNonvisibleComponent implements Component,
 							"Play", ErrorMessages.ERROR_UNABLE_TO_PLAY_MEDIA,
 							sourcePath);
 				} else {
-					container.$form().dispatchErrorOccurredEvent(this, "Play",
+					container.getRegistrar().dispatchErrorOccurredEvent(this, "Play",
 							ErrorMessages.ERROR_UNABLE_TO_PLAY_MEDIA,
 							sourcePath);
 				}
@@ -342,7 +344,7 @@ public class Sound extends AndroidNonvisibleComponent implements Component,
 								sContainer.$formService(), resIdMap.get(i)[2]);
 					} else {
 						temp = MediaUtil.loadSoundPool(soundPool,
-								container.$form(), resIdMap.get(i)[2]);
+								container.$context(), resIdMap.get(i)[2]);
 					}
 
 					soundMap.put(resIdMap.get(i)[0], temp);
@@ -377,5 +379,37 @@ public class Sound extends AndroidNonvisibleComponent implements Component,
 		// The documentation for SoundPool suggests setting the reference to
 		// null;
 		soundPool = null;
+	}
+
+	@Override
+	public void onStartCommand() {
+		if (!initialized && resIdMap.size() > 0) {			
+			for (int i = 0; i < resIdMap.size(); i++) {
+				try {
+					int temp;
+					if (isService) {
+						temp = MediaUtil.loadSoundPool(soundPool,
+								sContainer.$formService(), resIdMap.get(i)[2]);
+					} else {
+						temp = MediaUtil.loadSoundPool(soundPool,
+								container.$context(), resIdMap.get(i)[2]);
+					}
+
+					soundMap.put(resIdMap.get(i)[0], temp);
+					if (i == 0) {
+						soundId = temp;
+						if (BuildConfig.DEBUG) {
+							Log.e("Sound",
+									"Sound loaded into SoundMap. SoundID generated: "
+											+ soundId);
+						}
+					}
+				} catch (IOException e) {
+					Log.e("Sound", "Sound failed to load: "
+							+ resIdMap.get(i)[0]);
+				}
+			}
+		}
+		initialized = true;
 	}
 }

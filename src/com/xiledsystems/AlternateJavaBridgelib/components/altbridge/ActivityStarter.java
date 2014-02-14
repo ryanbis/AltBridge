@@ -2,6 +2,7 @@ package com.xiledsystems.AlternateJavaBridgelib.components.altbridge;
 
 import com.xiledsystems.AlternateJavaBridgelib.components.Component;
 import com.xiledsystems.AlternateJavaBridgelib.components.events.EventDispatcher;
+import com.xiledsystems.AlternateJavaBridgelib.components.events.Events;
 import com.xiledsystems.AlternateJavaBridgelib.components.util.ErrorMessages;
 import com.xiledsystems.altbridge.BuildConfig;
 
@@ -241,7 +242,11 @@ public class ActivityStarter extends AndroidNonvisibleComponent
 
   
   public void AfterActivity(String result) {
-    EventDispatcher.dispatchEvent(this, "AfterActivity", result);
+	  if (eventListener != null) {
+		  eventListener.eventDispatched(Events.AFTER_ACTIVITY, result);
+	  } else {
+		  EventDispatcher.dispatchEvent(this, Events.AFTER_ACTIVITY, result);
+	  }
   }
 
   /**
@@ -309,7 +314,7 @@ public class ActivityStarter extends AndroidNonvisibleComponent
       // register with the Form and then use the requestCode when we start an activity, the Form
       // will call our resultReturned method.
     	
-      requestCode = container.$form().registerForActivityResult(this);
+      requestCode = container.getRegistrar().registerForActivityResult(this);
     }
 
     try {
@@ -325,7 +330,7 @@ public class ActivityStarter extends AndroidNonvisibleComponent
     		sContainer.$formService().dispatchErrorOccurredEvent(this, "StartActivity",
     		          ErrorMessages.ERROR_ACTIVITY_STARTER_NO_CORRESPONDING_ACTIVITY);
     	} else {
-    		container.$form().dispatchErrorOccurredEvent(this, "StartActivity",
+    		container.getRegistrar().dispatchErrorOccurredEvent(this, "StartActivity",
     				ErrorMessages.ERROR_ACTIVITY_STARTER_NO_CORRESPONDING_ACTIVITY);
     	}
     }
@@ -383,6 +388,6 @@ public class ActivityStarter extends AndroidNonvisibleComponent
 
   @Override
   public void onDelete() {
-    container.$form().unregisterForActivityResult(this);
+    container.getRegistrar().unregisterForActivityResult(this);
   }
 }

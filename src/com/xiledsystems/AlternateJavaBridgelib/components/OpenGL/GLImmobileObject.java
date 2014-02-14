@@ -60,7 +60,7 @@ public abstract class GLImmobileObject extends GLObject implements OnInitializeL
 		// Initialize is needed to convert coordinate system to opengl coordinates
 		glCanvas.renderer.registerForOnSurfaceCreated(this);		
 		glCanvas.updateThread.addObjectToUpdateList(this);
-		((OpenGLCanvas)glCanvas.canvas).$form().registerForOnInitialize(this);
+		((OpenGLCanvas)glCanvas.canvas).getRegistrar().registerForOnInitialize(this);
 	}
 	
 	public void StartPosition(float x, float y) {

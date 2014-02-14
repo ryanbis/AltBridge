@@ -37,6 +37,8 @@ public class NetworkUtil {
 	/**
 	 * Check if there is any connection active.
 	 * 
+	 * Make sure you have the ACCESS_NETWORK_STATE permissions in your Manifest.
+	 * 
 	 * @param context
 	 * @return
 	 */
@@ -54,6 +56,8 @@ public class NetworkUtil {
 	 * LTE - LTE ( ~ 10+ Mbps )
 	 * MobileFast ( ~ 400kbps on up depending on network ) 
 	 * MobileSlow ( ~ 14kbps - 100kbps )
+	 * 
+	 * Make sure you have the ACCESS_NETWORK_STATE permissions in your Manifest.
 	 * 
 	 * @param context
 	 * @return

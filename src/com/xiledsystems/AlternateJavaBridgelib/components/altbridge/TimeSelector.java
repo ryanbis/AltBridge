@@ -42,7 +42,7 @@ public class TimeSelector extends ButtonBase {
 	/**
 	 * Constructor for the DateSelector component when using the GLE.
 	 * 
-	 * @param container This should always "this" (without the quotes)
+	 * @param container This should always be "this" (without the quotes)
 	 * @param resId The resource id of the DateSelector you dropped in the GLE
 	 */
 	public TimeSelector(ComponentContainer container, int resourceId) {

@@ -1,8 +1,6 @@
 package com.xiledsystems.AlternateJavaBridgelib.components.altbridge;
 
 
-import android.view.View;
-
 public class RelativeArrangement extends RVArrangement {
 
 	/**

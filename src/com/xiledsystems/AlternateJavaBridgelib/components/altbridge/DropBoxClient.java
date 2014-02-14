@@ -23,6 +23,7 @@ import com.dropbox.client2.session.AccessTokenPair;
 import com.dropbox.client2.session.AppKeyPair;
 import com.dropbox.client2.session.Session.AccessType;
 import com.xiledsystems.AlternateJavaBridgelib.components.events.EventDispatcher;
+import com.xiledsystems.AlternateJavaBridgelib.components.events.Events;
 
 
 public class DropBoxClient extends AndroidNonvisibleComponent implements OnResumeListener, OnDestroyListener {
@@ -85,7 +86,7 @@ public class DropBoxClient extends AndroidNonvisibleComponent implements OnResum
 		if (container == null) {
 			prefs = sContainer.$formService().getSharedPreferences(DB_PREFS, Context.MODE_PRIVATE);
 		} else {
-			prefs = container.$form().getSharedPreferences(DB_PREFS, Context.MODE_PRIVATE);
+			prefs = container.$context().getSharedPreferences(DB_PREFS, Context.MODE_PRIVATE);
 		}
     
 		SharedPreferences.Editor edit = prefs.edit();
@@ -99,7 +100,7 @@ public class DropBoxClient extends AndroidNonvisibleComponent implements OnResum
 		if (container == null) {
 			prefs = sContainer.$formService().getSharedPreferences(DB_PREFS, Context.MODE_PRIVATE);
 		} else {
-			prefs = container.$form().getSharedPreferences(DB_PREFS, Context.MODE_PRIVATE);
+			prefs = container.$context().getSharedPreferences(DB_PREFS, Context.MODE_PRIVATE);
 		}
         String key = prefs.getString(KEY, null);
         String secret = prefs.getString(SECRET, null);
@@ -128,7 +129,7 @@ public class DropBoxClient extends AndroidNonvisibleComponent implements OnResum
 	 			if (container==null) {
 	 				dbApi.getSession().startAuthentication(sContainer.$formService());
 	 			} else {
-	 				dbApi.getSession().startAuthentication(container.$form());
+	 				dbApi.getSession().startAuthentication(container.$context());
 	 			}
 	 		}
 		} else {
@@ -153,7 +154,7 @@ public class DropBoxClient extends AndroidNonvisibleComponent implements OnResum
 		if (container == null) {
 			prefs = sContainer.$formService().getSharedPreferences(DB_PREFS, Context.MODE_PRIVATE);
 		} else {
-			prefs = container.$form().getSharedPreferences(DB_PREFS, Context.MODE_PRIVATE);
+			prefs = container.$context().getSharedPreferences(DB_PREFS, Context.MODE_PRIVATE);
 		}
 		SharedPreferences.Editor edit = prefs.edit();
         edit.clear();
@@ -216,10 +217,14 @@ public class DropBoxClient extends AndroidNonvisibleComponent implements OnResum
 	}
 	
 	private void postResponse(final DropBoxClient client, final boolean success, final String fileName) {		
-		container.$form().post(new Runnable() {			
+		container.getRegistrar().post(new Runnable() {			
 			@Override
 			public void run() {
-				EventDispatcher.dispatchEvent(client, "Response", success, fileName);
+				if (eventListener != null) {
+					eventListener.eventDispatched(Events.RESPONSE, success, fileName);
+				} else {
+					EventDispatcher.dispatchEvent(client, Events.RESPONSE, success, fileName);
+				}
 			}
 		});		
 	}
@@ -343,10 +348,18 @@ public class DropBoxClient extends AndroidNonvisibleComponent implements OnResum
 	            
 					storeKeys(tokens.key, tokens.secret);
 					loggedIn = true;
-					EventDispatcher.dispatchEvent(this, "LoginResponse", true);
+					if (eventListener != null) {
+						eventListener.eventDispatched("LoginResponse", true);
+					} else {
+						EventDispatcher.dispatchEvent(this, "LoginResponse", true);
+					}
 				} catch (IllegalStateException e) {
 					Log.e("DropBoxClient", "Error authenticating", e);
-					EventDispatcher.dispatchEvent(this, "LoginResponse", false);
+					if (eventListener != null) {
+						eventListener.eventDispatched("LoginResponse", false);
+					} else {
+						EventDispatcher.dispatchEvent(this, "LoginResponse", false);
+					}
 				}
 			} 
 		}

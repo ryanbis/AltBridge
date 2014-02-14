@@ -29,7 +29,7 @@ public class SpriteSheetHelper extends AndroidNonvisibleComponent implements OnD
 		sheetInfo = new ArrayList<SheetInfo>();		
 		BitmapDrawable draw = (BitmapDrawable) container.$context().getResources().getDrawable(sheetResId);		
 		spriteSheet = draw.getBitmap();
-		container.$form().registerForOnDestroy(this);
+		container.getRegistrar().registerForOnDestroy(this);
 	}
 	
 	// TODO Add checks to make sure the sheetinfo list is populated.

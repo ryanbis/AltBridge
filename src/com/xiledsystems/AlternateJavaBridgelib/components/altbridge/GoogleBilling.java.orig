@@ -1,0 +1,256 @@
+package com.xiledsystems.AlternateJavaBridgelib.components.altbridge;
+
+import android.content.Intent;
+import com.xiledsystems.AlternateJavaBridgelib.components.events.EventDispatcher;
+import com.xiledsystems.AlternateJavaBridgelib.components.events.Events;
+import com.xiledsystems.AlternateJavaBridgelib.components.util.IabHelper;
+import com.xiledsystems.AlternateJavaBridgelib.components.util.IabHelper.OnIabSetupFinishedListener;
+import com.xiledsystems.AlternateJavaBridgelib.components.util.IabResult;
+import com.xiledsystems.AlternateJavaBridgelib.components.util.Inventory;
+import com.xiledsystems.AlternateJavaBridgelib.components.util.Purchase;
+
+/**
+ * Convenience class for using Google Billing for in-app purchases. You need to
+ * add <uses-permission android:name="com.android.vending.BILLING" /> to your
+ * applications AndroidManifest file for this to work.
+ * 
+ * You will also need to create the package com.android.vending.billing in your
+ * project, and download the Google Market Billing from the SDK manager, and
+ * place the IInAppBillingService.aidl file into the newly created package.
+ * 
+ * @author Ryan Bis
+ * 
+ */
+public class GoogleBilling extends AndroidNonvisibleComponent implements ActivityResultListener, OnDestroyListener {
+
+	private final static String PAY = ".payload";
+	private final static String NULL_DATA_ERROR = "IAB returned null purchaseData or dataSignature";
+	private static int REQUEST_CODE;
+	private final static String TAG = "GoogleBillingComponent";
+	public final static String ITEM_TYPE_SUBS = IabHelper.ITEM_TYPE_SUBS;
+	public final static String ITEM_TYPE_INAPP = IabHelper.ITEM_TYPE_INAPP;
+	public final static int PURCHASED = 0;
+	public final static int CANCELLED = 1;
+	public final static int REFUNDED = 2;
+
+	private String payload;
+	private String base64Key;
+	
+	private String tmpSku = null;
+
+	private IabHelper helper;
+
+	private InventoryListener gotInventoryListener = new InventoryListener();
+	private PurchaseFinishedListener purchaseFinsihedListener = new PurchaseFinishedListener();
+
+	public GoogleBilling(ComponentContainer container) {
+		super(container);
+		payload = container.$context().getPackageName() + PAY;
+		REQUEST_CODE = container.getRegistrar().registerForActivityResult(this);
+		container.getRegistrar().registerForOnDestroy(this);
+	}
+
+	/**
+	 * Set a developer payload, or tag, to add more verification. A default
+	 * payload of the packagename + .payload is used if this is not set.
+	 * 
+	 * @param payload
+	 */
+	public void Payload(String payload) {
+		this.payload = payload;
+	}
+
+	/**
+	 * 
+	 * @return - The current payload.
+	 */
+	public String Payload() {
+		return payload;
+	}
+
+	/**
+	 * Launch the Google Billing purchase process. This throws the
+	 * PURCHASE_FINISHED event if the purchase is finished successfully. Make
+	 * sure to check the purchase with purchase.getPurchaseState, as the three
+	 * states are PURCHASED, CANCELLED, and REFUNDED.
+	 * 
+	 * @param item
+	 *            - The sku of the item to purchase. This should match what you
+	 *            have in the developer's console
+	 * @param type
+	 *            - The type of purchase (ITEM_TYPE_INAPP, or ITEM_TYPE_SUBS for
+	 *            subscriptions)
+	 */
+	public void PurchaseItem(String item, String type) {
+		if (helper != null) {
+			tmpSku = item;
+			helper.launchPurchaseFlow(container.$context(), item, REQUEST_CODE, purchaseFinsihedListener, payload);
+		} else {
+			throw new GoogleBillingException("Base64 key not set yet!");
+		}
+	}
+
+	/**
+	 * 
+	 * @param p
+	 *            - the purchase to check
+	 * @return - Whether this payload is verified (requested with our payload)
+	 */
+	public boolean verifyPayload(Purchase p) {
+		String payLoad = p.getDeveloperPayload();
+		return payLoad.contains(payload);
+	}
+
+	/**
+	 * This needs to be set before calling SetupBilling. This is found in the
+	 * developer's console.
+	 * 
+	 * @param key
+	 */
+	public void Base64Key(String key) {
+		base64Key = key;
+		helper = new IabHelper(getContext(), key);
+	}
+
+	/**
+	 * 
+	 * @return - The currently used key (if not set, null is returned)
+	 */
+	public String Base64Key() {
+		return base64Key;
+	}
+
+	/**
+	 * Setting this to true will enable more verbose logging to be output to the
+	 * logcat. Do not leave this true in a production application.
+	 * 
+	 * @param debug
+	 */
+	public void VerboseDebug(boolean debug) {
+		if (helper != null) {
+			helper.enableDebugLogging(debug, TAG);
+		} else {
+			throw new GoogleBillingException("Base64 key not set yet!");
+		}
+	}
+
+	/**
+	 * 
+	 * @return the IabHelper this component is backed by.
+	 */
+	public IabHelper getHelper() {
+		return helper;		
+	}
+	
+	/**
+	 * This will query the inventory of purchases. This is
+	 * run automatically after BillingSetup is run. In most cases,
+	 * you won't have to use this method.
+	 *  
+	 */
+	public void queryInventory() {
+		helper.queryInventoryAsync(gotInventoryListener);
+	}
+	
+	private void requeryInventory() {
+		helper.queryInventoryAsync(new InventoryListener2());
+	}
+
+	/**
+	 * This gets google's in-app billing started, and setup. It does the basic
+	 * checks for compatibility, and whatnot. If there's an error, the
+	 * BILLING_ERROR event will be thrown, with the explanation in args[0].
+	 * 
+	 * This will throw the INVENTORY_RESULT event if the setup is successful,
+	 * which returns the current inventory of purchases, if any (The result is
+	 * args[0], which is the IabResult class, and args[1] is the Inventory
+	 * class).
+	 * 
+	 * You must set the Base64Key (in Google's developer console) before running
+	 * this method.
+	 */
+	public void SetupBilling() {
+		if (helper != null) {
+			helper.startSetup(new OnIabSetupFinishedListener() {
+				@Override
+				public void onIabSetupFinished(IabResult result) {
+					if (!result.isSuccess()) {
+						EventDispatcher.dispatchEvent(GoogleBilling.this, Events.BILLING_ERROR, "Problem setting up in" +
+								" app billing. Error: " + result);
+					}
+					helper.queryInventoryAsync(gotInventoryListener);
+				}
+			});
+		} else {
+			throw new GoogleBillingException("Base64 key not set yet!");
+		}
+	}
+
+	private class InventoryListener implements IabHelper.QueryInventoryFinishedListener {
+		@Override
+		public void onQueryInventoryFinished(IabResult result, Inventory inv) {
+			if (result.isFailure()) {
+				EventDispatcher.dispatchEvent(GoogleBilling.this, Events.BILLING_ERROR, "Failure querying inventory. Error: " + 
+						result.toString());
+			} else {
+				EventDispatcher.dispatchEvent(GoogleBilling.this, Events.INVENTORY_RESULT, result, inv);
+			}
+		}
+	}
+	
+	private class InventoryListener2 implements IabHelper.QueryInventoryFinishedListener {
+		@Override
+		public void onQueryInventoryFinished(IabResult result, Inventory inv) {
+			if (result.isFailure()) {
+				EventDispatcher.dispatchEvent(GoogleBilling.this, Events.BILLING_ERROR, "Failure querying inventory. Error: " + 
+						result.toString());
+			} else {				
+				EventDispatcher.dispatchEvent(GoogleBilling.this, Events.PURCHASE_FINISHED, result, inv.getPurchase(tmpSku));
+				tmpSku = null;
+			}
+		}
+	}
+
+	private class PurchaseFinishedListener implements IabHelper.OnIabPurchaseFinishedListener {
+		@Override
+		public void onIabPurchaseFinished(IabResult result, Purchase info) {
+			if (result.isFailure()) {
+				// Hack to fix the null purchasedata/dataSignature issue
+				if (result.toString().contains(NULL_DATA_ERROR) && tmpSku != null) {
+					requeryInventory();
+				} else {
+					EventDispatcher.dispatchEvent(GoogleBilling.this, Events.BILLING_ERROR, "Error purchasing. Error: " + 
+							result.toString());
+				}
+			} else if (!verifyPayload(info)) {
+				EventDispatcher.dispatchEvent(GoogleBilling.this, Events.BILLING_ERROR, "Error purchasing. Payload verification failed.");
+			} else {
+				EventDispatcher.dispatchEvent(GoogleBilling.this, Events.PURCHASE_FINISHED, result, info);
+			}
+		}
+	}
+
+	private class GoogleBillingException extends RuntimeException {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -6899938259178520093L;
+
+		public GoogleBillingException(String message) {
+			super(message);
+		}
+	}
+
+	@Override
+	public void onDestroy() {
+		// Dispose of our helper object, so it doesn't create
+		// a memory leak.
+		helper.dispose();
+	}
+
+	@Override
+	public void resultReturned(int requestCode, int resultCode, Intent data) {
+		helper.handleActivityResult(requestCode, resultCode, data);
+	}
+
+}

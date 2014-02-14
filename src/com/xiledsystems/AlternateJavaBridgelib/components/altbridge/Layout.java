@@ -23,4 +23,6 @@ public interface Layout {
    * @param component  component to add
    */
   void add(AndroidViewComponent component);
+  
+  void remove(AndroidViewComponent component);
 }

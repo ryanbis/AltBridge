@@ -1,6 +1,7 @@
 package com.xiledsystems.AlternateJavaBridgelib.components.altbridge;
 
 import com.xiledsystems.AlternateJavaBridgelib.components.events.EventDispatcher;
+import com.xiledsystems.AlternateJavaBridgelib.components.events.Events;
 
 /**
  * Button with the ability to launch events on initialization, focus
@@ -9,8 +10,9 @@ import com.xiledsystems.AlternateJavaBridgelib.components.events.EventDispatcher
  *
  */
 
-public final class Button extends ButtonBase {
-
+public class Button extends ButtonBase {
+	
+	
   /**
    * Creates a new Button component.
    *
@@ -30,13 +32,17 @@ public final class Button extends ButtonBase {
     // implementation from the Click() event handler method.
     Click();
   }
-
+ 
   /**
    * Indicates a user has clicked on the button.
    */
   
   public void Click() {
-    EventDispatcher.dispatchEvent(this, "Click");
+	  if (eventListener != null) {
+		  eventListener.eventDispatched(Events.CLICK);
+	  } else {
+		  EventDispatcher.dispatchEvent(this, Events.CLICK);
+	  }    
   }
 
   @Override
@@ -51,7 +57,11 @@ public final class Button extends ButtonBase {
    */
   
   public boolean LongClick() {
-    return EventDispatcher.dispatchEvent(this, "LongClick");
+	  if (eventListener != null) {
+		  eventListener.eventDispatched(Events.LONG_CLICK);
+		  return true;
+	  }
+    return EventDispatcher.dispatchEvent(this, Events.LONG_CLICK);
   }
 
 }

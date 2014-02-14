@@ -80,14 +80,14 @@ public final class SoundRecorder extends AndroidNonvisibleComponent
     }
     Log.i(TAG, "Start() called");
     if (!Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
-      container.$form().dispatchErrorOccurredEvent(
+      container.getRegistrar().dispatchErrorOccurredEvent(
           this, "Start", ErrorMessages.ERROR_MEDIA_EXTERNAL_STORAGE_NOT_AVAILABLE);
       return;
     }
     try {
       controller = new RecordingController();
     } catch (Throwable t) {
-    	container.$form().dispatchErrorOccurredEvent(
+    	container.getRegistrar().dispatchErrorOccurredEvent(
           this, "Start", ErrorMessages.ERROR_SOUND_RECORDER_CANNOT_CREATE, t.getMessage());
       return;
     }
@@ -96,7 +96,7 @@ public final class SoundRecorder extends AndroidNonvisibleComponent
     } catch (Throwable t) {
       controller.stop();
       controller = null;
-      container.$form().dispatchErrorOccurredEvent(
+      container.getRegistrar().dispatchErrorOccurredEvent(
           this, "Start", ErrorMessages.ERROR_SOUND_RECORDER_CANNOT_CREATE, t.getMessage());
       return;
     }
@@ -109,7 +109,7 @@ public final class SoundRecorder extends AndroidNonvisibleComponent
       Log.w(TAG, "onError called with wrong recorder. Ignoring.");
       return;
     }
-    container.$form().dispatchErrorOccurredEvent(this, "onError", ErrorMessages.ERROR_SOUND_RECORDER);
+    container.getRegistrar().dispatchErrorOccurredEvent(this, "onError", ErrorMessages.ERROR_SOUND_RECORDER);
     try {
       controller.stop();
     } catch (Throwable e) {
@@ -146,7 +146,7 @@ public final class SoundRecorder extends AndroidNonvisibleComponent
       Log.i(TAG, "Firing AfterSoundRecorded with " + controller.file);
       AfterSoundRecorded(controller.file);
     } catch (Throwable t) {
-    	container.$form().dispatchErrorOccurredEvent(this, "Stop", ErrorMessages.ERROR_SOUND_RECORDER);
+    	container.getRegistrar().dispatchErrorOccurredEvent(this, "Stop", ErrorMessages.ERROR_SOUND_RECORDER);
     } finally {
       controller = null;
       StoppedRecording();

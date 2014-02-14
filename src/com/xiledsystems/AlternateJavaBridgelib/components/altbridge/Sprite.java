@@ -10,6 +10,7 @@ import com.xiledsystems.AlternateJavaBridgelib.components.Component;
 import com.xiledsystems.AlternateJavaBridgelib.components.HandlesEventDispatching;
 import com.xiledsystems.AlternateJavaBridgelib.components.SpriteComponent;
 import com.xiledsystems.AlternateJavaBridgelib.components.altbridge.util.DrawingCanvas;
+import com.xiledsystems.AlternateJavaBridgelib.components.altbridge.util.Registrar;
 import com.xiledsystems.AlternateJavaBridgelib.components.altbridge.util.TimerInternal;
 import com.xiledsystems.AlternateJavaBridgelib.components.events.EventDispatcher;
 
@@ -65,7 +66,7 @@ public abstract class Sprite extends SpriteComponent implements Deleteable, OnIn
     if (container instanceof Canvas) {
     	this.canvas = (Canvas) container;
     	this.canvas.addSprite(this);
-    	this.canvas.$form().registerForOnInitialize(this);
+    	this.canvas.getRegistrar().registerForOnInitialize(this);
     	 // Set in motion.
         timerInternal = new TimerInternal(this);
     	this.aCanvas = null;
@@ -73,7 +74,7 @@ public abstract class Sprite extends SpriteComponent implements Deleteable, OnIn
     	this.canvas = null;
     	this.aCanvas = (AnimCanvas) container;
     	this.aCanvas.addSprite(this);
-    	this.aCanvas.$form().registerForOnInitialize(this);
+    	this.aCanvas.getRegistrar().registerForOnInitialize(this);
     	 // Set in motion.
         timerInternal = new TimerInternal(this/*, aCanvas.getHandler()*/);
     }
@@ -84,7 +85,7 @@ public abstract class Sprite extends SpriteComponent implements Deleteable, OnIn
     registeredCollisions = new HashSet<SpriteComponent>();
   }
   
-  public Sprite(ComponentContainer container, int resourceId) {
+  public Sprite(DrawingCanvas container, int resourceId) {
 	    super();
 
 	    // Note that although this is creating a new Handler there is
@@ -101,13 +102,13 @@ public abstract class Sprite extends SpriteComponent implements Deleteable, OnIn
 	    if (container instanceof Canvas) {
 	    	this.canvas = (Canvas) container;
 	    	this.canvas.addSprite(this);
-	    	this.canvas.$form().registerForOnInitialize(this);
+	    	this.canvas.getRegistrar().registerForOnInitialize(this);
 	    	this.aCanvas = null;
 	    } else {
 	    	this.canvas = null;
 	    	this.aCanvas = (AnimCanvas) container;
 	    	this.aCanvas.addSprite(this);
-	    	this.aCanvas.$form().registerForOnInitialize(this);
+	    	this.aCanvas.getRegistrar().registerForOnInitialize(this);
 	    }
 	    // Set in motion.
 	    timerInternal = new TimerInternal(this);
@@ -118,9 +119,7 @@ public abstract class Sprite extends SpriteComponent implements Deleteable, OnIn
 	  }
 
   @Override
-  protected void requestEvent(final SpriteComponent sprite,
-                              final String eventName,
-                              final Object... args) {
+  protected void requestEvent(final SpriteComponent sprite, final String eventName, final Object... args) {
     androidUIHandler.post(new Runnable() {
         public void run() {
           EventDispatcher.dispatchEvent(sprite, eventName, args);
@@ -385,9 +384,9 @@ protected DrawingCanvas getCanvas() {
   @Override
   public HandlesEventDispatching getDispatchDelegate() {
 	  if (canvas !=null ) {
-		  return canvas.$form();
+		  return canvas.getDelegate();
 	  } else {
-		  return aCanvas.$form();
+		  return aCanvas.getDelegate();
 	  }
   }
 
@@ -404,22 +403,20 @@ protected DrawingCanvas getCanvas() {
   }
   
   @Override
-	public void onInitialize() {
-		
+	public void onInitialize() {		
 		if (autoResize) {
-			Form form;
+			Registrar form;
 			if (canvas !=null) {
-				form = canvas.$form();
+				form = canvas.getRegistrar();
 			} else {
-				form = aCanvas.$form();
+				form = aCanvas.getRegistrar();
 			}
-			this.Width((int) (form.scrnWidth * widthMultiplier));
-			this.Height((int) (form.scrnHeight * heightMultiplier));
+			this.Width((int) (form.getAvailWidth() * widthMultiplier));
+			this.Height((int) (form.getAvailHeight() * heightMultiplier));
 		}	
   }
 
-  public void setMultipliers(double widthmultiplier, double heightmultiplier) {
-		
+  public void setMultipliers(double widthmultiplier, double heightmultiplier) {		
 		autoResize=true;
 		this.widthMultiplier = widthmultiplier;
 		this.heightMultiplier = heightmultiplier;			

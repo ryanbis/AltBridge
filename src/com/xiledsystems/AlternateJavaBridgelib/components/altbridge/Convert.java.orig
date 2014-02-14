@@ -1,0 +1,261 @@
+package com.xiledsystems.AlternateJavaBridgelib.components.altbridge;
+
+import java.util.ArrayList;
+
+public final class Convert {
+
+	private Convert() {		
+	}
+	
+	/**
+	 * Converts an object to an int. If the object cannot
+	 * be cast to an integer, 0 will be returned.
+	 * 
+	 * @param object
+	 * @return
+	 */
+	public static int Int(Object object) {	  
+	  return Int(object, 0);		
+	}
+	
+	/**
+     * Converts an object to an int. If the object cannot
+     * be cast to an integer, the defvalue will be returned.
+     * 
+     * @param object
+     * @param defValue - The default value to return if the object being converted cannot be converted.
+     * @return
+     */
+    public static int Int(Object object, int defValue) {      
+      return Int(object.toString(), defValue);     
+    }
+	
+	/**
+	 * Converts a String to an int. If the string cannot
+     * be cast to an integer, 0 will be returned.
+     * 
+	 * @param string
+	 * @return
+	 */
+	public static int Int(String string) {
+		return Int(string, 0);
+	}
+	
+	/**
+     * Converts an object to an int. If the object cannot
+     * be cast to an integer, the defValue will be returned.
+     * 
+     * @param object
+     * @param defValue - The default value to return if the object being converted cannot be converted.
+     * @return
+     */
+	public static int Int(String string, int defValue) {
+	  int i = defValue;
+	  try {
+	    i = Integer.parseInt(string);
+	  } catch (NumberFormatException e) {	    
+	  }
+	  return i;
+	}
+	
+	/**
+	 * Converts an object to a String. This only checks
+	 * for Byte, Short, Integer, Long, Float, and Double.
+	 * If the object is none of those, object.toString() is
+	 * what is returned.
+	 * 
+	 * @param object
+	 * @return
+	 */
+	public static String string(Object object) {
+	  if (object instanceof Byte) {
+	    return Byte.toString((Byte) object);
+	  } else if (object instanceof Short) {
+        return Short.toString((Short) object);
+      } else if (object instanceof Integer) {
+	    return Integer.toString((Integer) object);
+	  } else if (object instanceof Long) {
+	    return Long.toString((Long) object);
+	  } else if (object instanceof Float) {
+        return Float.toString((Float) object);
+      } else if (object instanceof Double) {
+	    return Double.toString((Double) object);
+	  } else {
+	    return object.toString();
+	  }
+	}
+	
+	/**
+	 * Converts an object to a long
+	 * @param object
+	 * @return
+	 */
+	public static long Long(Object object) {
+		return Long(object, 0);
+	}
+	
+	public static long Long(Object object, long defValue) {	 
+	  return Long(object.toString(), defValue);
+	}
+	
+	/**
+	 * Converts a String to a long
+	 * @param string
+	 * @return
+	 */
+	public static long Long(String string) {
+		return Long(string, 0);
+	}
+		
+	/**
+     * Converts a string to a long. If the object cannot
+     * be cast to a long, the defValue will be returned.
+     * 
+     * @param object
+     * @param defValue - The default value to return if the object being converted cannot be converted.
+     * @return
+     */
+    public static long Long(String string, long defValue) {
+      long i = defValue;
+      try {
+        i = Long.parseLong(string);
+      } catch (NumberFormatException e) {       
+      }
+      return i;
+    }
+	
+	/**
+	 * Converts an object to a double
+	 * @param object
+	 * @return
+	 */
+	public static double Double(Object object) {
+		return Double(object, 0);
+	}
+	
+	public static double Double(Object object, double defValue) {	  
+	  return Double(object.toString(), defValue);
+	}
+	
+	/**
+	 * Converts a string to a double
+	 * @param string
+	 * @return
+	 */
+	public static double Double(String string) {
+		return Double(string, 0);
+	}
+	
+	public static double Double(String string, double defValue) {
+	  double d = 0;
+      try {
+        d = Double.parseDouble(string);
+      } catch (NumberFormatException e) {       
+      }
+      return d;
+	}
+	
+	/**
+	 * Converts an object to a boolean
+	 * @param object
+	 * @return
+	 */
+	public static boolean Boolean(Object object) {
+		return Boolean.parseBoolean(object.toString());
+	}
+	
+	/**
+	 * Converts a string to a boolean
+	 * @param string
+	 * @return
+	 */
+	public static boolean Boolean(String string) {
+		return Boolean.parseBoolean(string);
+	}
+		
+	/**
+	 * Converts an object to a float
+	 * @param object
+	 * @return
+	 */
+	public static float Float(Object object) {
+		return Float(object, 0f);
+	}
+	
+	public static float Float(Object object, float defValue) {
+	  return Float(object.toString(), defValue);
+	}
+	
+	/**
+	 * Converts a String to a float
+	 * @param string
+	 * @return
+	 */
+	public static float Float(String string) {
+		return Float(string, 0f);
+	}
+	
+	public static float Float(String string, float defValue) {
+	  float f = 0;
+	  try {
+	    f = Float.parseFloat(string);
+	  } catch (NumberFormatException e) {	    
+	  }
+	  return f;
+	}
+	
+	public static ArrayList<Boolean> BooleanArrayList(ArrayList<String> list) {
+	  ArrayList<Boolean> nlist = new ArrayList<Boolean>();
+	  int size = list.size();
+	  for (int i = 0; i < size; i++) {
+	    nlist.add(Boolean.valueOf(list.get(i)));
+	  }
+	  return nlist;
+	}
+	
+	public static ArrayList<Integer> IntegerArrayList(ArrayList<String> list) {
+      ArrayList<Integer> nlist = new ArrayList<Integer>();
+      int size = list.size();
+      for (int i = 0; i < size; i++) {
+        nlist.add(Integer.valueOf(list.get(i)));
+      }
+      return nlist;
+    }
+	
+	public static ArrayList<Short> ShortArrayList(ArrayList<String> list) {
+      ArrayList<Short> nlist = new ArrayList<Short>();
+      int size = list.size();
+      for (int i = 0; i < size; i++) {
+        nlist.add(Short.valueOf(list.get(i)));
+      }
+      return nlist;
+    }
+	
+	public static ArrayList<Long> LongArrayList(ArrayList<String> list) {
+      ArrayList<Long> nlist = new ArrayList<Long>();
+      int size = list.size();
+      for (int i = 0; i < size; i++) {
+        nlist.add(Long.valueOf(list.get(i)));
+      }
+      return nlist;
+    }
+	
+	public static ArrayList<Float> FloatArrayList(ArrayList<String> list) {
+      ArrayList<Float> nlist = new ArrayList<Float>();
+      int size = list.size();
+      for (int i = 0; i < size; i++) {
+        nlist.add(Float.valueOf(list.get(i)));
+      }
+      return nlist;
+    }
+	
+	/**
+	 * This will convert a number to a two digit
+	 * format friendly for calendars (month, two digit year)
+	 * @param object to convert
+	 * @return
+	 */
+	public static String TwoDigits(Object object) {
+		return String.format("%01", object.toString());
+	}
+}

@@ -176,4 +176,9 @@ public class TableLayout implements Layout {
   private static TableRow.LayoutParams newCellLayoutParams() {
     return new TableRow.LayoutParams();
   }
+
+  @Override
+  public void remove(AndroidViewComponent component) {
+    layoutManager.removeView(component.getView());
+  }
 }

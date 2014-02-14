@@ -1,12 +1,9 @@
 package com.xiledsystems.AlternateJavaBridgelib.components.altbridge;
 
 import java.util.ArrayList;
-
 import com.xiledsystems.AlternateJavaBridgelib.components.altbridge.collect.DoubleList;
 import com.xiledsystems.AlternateJavaBridgelib.components.altbridge.collect.PickerList;
 import com.xiledsystems.AlternateJavaBridgelib.components.altbridge.util.CustomListItem;
-import com.xiledsystems.AlternateJavaBridgelib.components.events.EventDispatcher;
-
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
@@ -19,10 +16,11 @@ import android.os.Bundle;
 
 public class ListPicker extends Picker implements ActivityResultListener, Deleteable {
 
-  private static final String LIST_ACTIVITY_CLASS = ListPickerActivity.class.getName();
-  public static final String LIST_ACTIVITY_ARG_NAME = LIST_ACTIVITY_CLASS + ".list";
-  public static final String LIST_ACTIVITY_RESULT_NAME = LIST_ACTIVITY_CLASS + ".selection";
-  public static final String LIST_ACTIVITY_RESULT_INDEX = LIST_ACTIVITY_CLASS + ".index";
+  private Class<?> pickerClass = ListPickerActivity.class;
+  public static String LIST_ACTIVITY_CLASS;  //By making this public, we can use it to allow users to exten ListPickerActivity, instead of having to copy the whole class to customize it
+  public static  String LIST_ACTIVITY_ARG_NAME = LIST_ACTIVITY_CLASS + ".list";
+  public static  String LIST_ACTIVITY_RESULT_NAME = LIST_ACTIVITY_CLASS + ".selection";
+  public static  String LIST_ACTIVITY_RESULT_INDEX = LIST_ACTIVITY_CLASS + ".index";
   public static final String LIST_CUSTOM_ROWID = "CustomRowId";
   public static final String LIST_CUSTOM_TEXT1 = "FirstText";
   public static final String LIST_CUSTOM_TEXT2 = "SecondText";
@@ -31,16 +29,17 @@ public class ListPicker extends Picker implements ActivityResultListener, Delete
   
   // AJB change - Remove YailLists replace with ArrayList, add abliity to customize listpicker view
   
-  public static final String LIST_ACTIVITY_LAYOUT = LIST_ACTIVITY_CLASS + ".layout";
-  public static final String LIST_ACTIVITY_TEXTVIEWID = LIST_ACTIVITY_CLASS + ".textViewId";
-  public static final String LIST_ACTIVITY_HEADERS = LIST_ACTIVITY_CLASS + ".headers";
-  public static final String LIST_ACTIVITY_CACHEHINT = LIST_ACTIVITY_CLASS + ".cacheHint";
+  public static  String LIST_ACTIVITY_LAYOUT = LIST_ACTIVITY_CLASS + ".layout";
+  public static  String LIST_ACTIVITY_TEXTVIEWID = LIST_ACTIVITY_CLASS + ".textViewId";
+  public static  String LIST_ACTIVITY_HEADERS = LIST_ACTIVITY_CLASS + ".headers";
+  public static  String LIST_ACTIVITY_CACHEHINT = LIST_ACTIVITY_CLASS + ".cacheHint";
   private int textViewId = android.R.id.text1;			// Default textview ID to populate info into
   private int layout=android.R.layout.simple_list_item_1; // This is the default layout view of the listpicker
 
   private ArrayList<String> items;
   private ArrayList<String> headers;
   private ArrayList<CustomListItem> custItems;
+  
   private String selection;
   private int selectionIndex;
   private boolean twoline;
@@ -61,6 +60,7 @@ public class ListPicker extends Picker implements ActivityResultListener, Delete
     items = new ArrayList<String>();
     selection = "";
     selectionIndex = 0;
+    setStaticNames(pickerClass);
   }
   
   public ListPicker(ComponentContainer container, int resourceId) {
@@ -68,7 +68,33 @@ public class ListPicker extends Picker implements ActivityResultListener, Delete
 	    items = new ArrayList<String>();
 	    selection = "";
 	    selectionIndex = 0;
+	    setStaticNames(pickerClass);
 	  }
+  
+  public ListPicker(ComponentContainer container, int resourceId, boolean ignoreNullView) {
+    super(container, resourceId, ignoreNullView);
+    items = new ArrayList<String>();
+    selection = "";
+    selectionIndex = 0;
+    setStaticNames(pickerClass);
+  }
+  
+  @Override
+  public void BeforePicking() {
+    setStaticNames(pickerClass);
+    super.BeforePicking();
+  }
+  
+  private static void setStaticNames(Class<?> pickerClass) {
+    LIST_ACTIVITY_CLASS = pickerClass.getName();
+    LIST_ACTIVITY_ARG_NAME = LIST_ACTIVITY_CLASS + ".list";
+    LIST_ACTIVITY_RESULT_NAME = LIST_ACTIVITY_CLASS + ".selection";
+    LIST_ACTIVITY_RESULT_INDEX = LIST_ACTIVITY_CLASS + ".index";
+    LIST_ACTIVITY_LAYOUT = LIST_ACTIVITY_CLASS + ".layout";
+    LIST_ACTIVITY_TEXTVIEWID = LIST_ACTIVITY_CLASS + ".textViewId";
+    LIST_ACTIVITY_HEADERS = LIST_ACTIVITY_CLASS + ".headers";
+    LIST_ACTIVITY_CACHEHINT = LIST_ACTIVITY_CLASS + ".cacheHint";
+  }
 
   /**
    * Selection property getter method.
@@ -76,6 +102,15 @@ public class ListPicker extends Picker implements ActivityResultListener, Delete
   
   public String Selection() {
     return selection;
+  }
+  
+  public void PickerClass(Class<?> clazz) {
+    pickerClass = clazz;
+    setStaticNames(pickerClass);
+  }
+  
+  public Class<?> PickerClass() {
+    return pickerClass;
   }
   
   /**
@@ -335,7 +370,7 @@ public class ListPicker extends Picker implements ActivityResultListener, Delete
 
   @Override
   public void onDelete() {
-    container.$form().unregisterForActivityResult(this);
+    container.getRegistrar().unregisterForActivityResult(this);
   }
 
 

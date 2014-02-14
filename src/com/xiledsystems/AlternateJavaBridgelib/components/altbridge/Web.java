@@ -49,7 +49,11 @@ public class Web extends AndroidNonvisibleComponent implements Component {
    * size is not 2.
    */
   private static class InvalidRequestHeadersException extends Exception {
-    /*
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 4630642843773854066L;
+	/*
      * errorNumber could be:
      * ErrorMessages.ERROR_WEB_REQUEST_HEADER_NOT_LIST
      * ErrorMessages.ERROR_WEB_REQUEST_HEADER_NOT_TWO_ELEMENTS
@@ -71,7 +75,11 @@ public class Web extends AndroidNonvisibleComponent implements Component {
    */
   // VisibleForTesting
   static class BuildPostDataException extends Exception {
-    /*
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 8601897253242171459L;
+	/*
      * errorNumber could be:
      * ErrorMessages.ERROR_WEB_BUILD_POST_DATA_NOT_LIST
      * ErrorMessages.ERROR_WEB_BUILD_POST_DATA_NOT_TWO_ELEMENTS
@@ -163,6 +171,7 @@ public class Web extends AndroidNonvisibleComponent implements Component {
   private WebHelper requestHeaders = new WebHelper();
   private String responseFileName = "";
   private final CookieHandler cookieHandler;
+  private GotTextListener gotTextListener;
 
   /**
    * Creates a new Web component.
@@ -233,7 +242,7 @@ public class Web extends AndroidNonvisibleComponent implements Component {
 		  if (isaService) {
 			  sContainer.$formService().dispatchErrorOccurredEvent(this, "RequestHeaders", e.errorNumber, e.index);
 		  } else {
-			  container.$form().dispatchErrorOccurredEvent(this, "RequestHeaders", e.errorNumber, e.index);
+			  container.getRegistrar().dispatchErrorOccurredEvent(this, "RequestHeaders", e.errorNumber, e.index);
 		  }
 	  }
   }
@@ -254,7 +263,7 @@ public class Web extends AndroidNonvisibleComponent implements Component {
 		  if (isaService) {
 			  sContainer.$formService().dispatchErrorOccurredEvent(this, "AllowCookies", ErrorMessages.ERROR_FUNCTIONALITY_NOT_SUPPORTED_WEB_COOKIES);
 		  } else {
-			  container.$form().dispatchErrorOccurredEvent(this, "AllowCookies", ErrorMessages.ERROR_FUNCTIONALITY_NOT_SUPPORTED_WEB_COOKIES);
+			  container.getRegistrar().dispatchErrorOccurredEvent(this, "AllowCookies", ErrorMessages.ERROR_FUNCTIONALITY_NOT_SUPPORTED_WEB_COOKIES);
 		  }
 	  }
   }
@@ -303,7 +312,7 @@ public class Web extends AndroidNonvisibleComponent implements Component {
 		  if (isaService) {
 			  sContainer.$formService().dispatchErrorOccurredEvent(this, "ClearCookies", ErrorMessages.ERROR_FUNCTIONALITY_NOT_SUPPORTED_WEB_COOKIES);
 		  } else {
-			  container.$form().dispatchErrorOccurredEvent(this, "ClearCookies", ErrorMessages.ERROR_FUNCTIONALITY_NOT_SUPPORTED_WEB_COOKIES);
+			  container.getRegistrar().dispatchErrorOccurredEvent(this, "ClearCookies", ErrorMessages.ERROR_FUNCTIONALITY_NOT_SUPPORTED_WEB_COOKIES);
 		  }
 	  }
   }
@@ -338,14 +347,14 @@ public class Web extends AndroidNonvisibleComponent implements Component {
         	if (isaService) {
         		sContainer.$formService().dispatchErrorOccurredEvent(Web.this, "Get", e.getErrorMessageNumber());
         	} else {
-        		container.$form().dispatchErrorOccurredEvent(Web.this, "Get",
+        		container.getRegistrar().dispatchErrorOccurredEvent(Web.this, "Get",
         				e.getErrorMessageNumber());
         	}
         } catch (Exception e) {
         	if (isaService) {
         		sContainer.$formService().dispatchErrorOccurredEvent(Web.this, "Get", ErrorMessages.ERROR_WEB_UNABLE_TO_GET, webProps.urlString);
         	} else {
-        		container.$form().dispatchErrorOccurredEvent(Web.this, "Get",
+        		container.getRegistrar().dispatchErrorOccurredEvent(Web.this, "Get",
         				ErrorMessages.ERROR_WEB_UNABLE_TO_GET, webProps.urlString);
         	}          
         }
@@ -412,7 +421,7 @@ public class Web extends AndroidNonvisibleComponent implements Component {
 	        		sContainer.$formService().dispatchErrorOccurredEvent(Web.this, functionName,
 	        				ErrorMessages.ERROR_WEB_UNSUPPORTED_ENCODING, encoding);
 	        	} else {
-	        		container.$form().dispatchErrorOccurredEvent(Web.this, functionName,
+	        		container.getRegistrar().dispatchErrorOccurredEvent(Web.this, functionName,
 	        				ErrorMessages.ERROR_WEB_UNSUPPORTED_ENCODING, encoding);
 	        	}
 	          return;
@@ -425,7 +434,7 @@ public class Web extends AndroidNonvisibleComponent implements Component {
 	        		sContainer.$formService().dispatchErrorOccurredEvent(Web.this, functionName,
 	        				e.getErrorMessageNumber());
 	        	} else {
-	        		container.$form().dispatchErrorOccurredEvent(Web.this, functionName,
+	        		container.getRegistrar().dispatchErrorOccurredEvent(Web.this, functionName,
 	        				e.getErrorMessageNumber());
 	        	}
 	        } catch (Exception e) {
@@ -433,7 +442,7 @@ public class Web extends AndroidNonvisibleComponent implements Component {
 	        		sContainer.$formService().dispatchErrorOccurredEvent(Web.this, functionName,
 	        				ErrorMessages.ERROR_WEB_UNABLE_TO_POST, text, webProps.urlString);
 	        	} else {
-	        		container.$form().dispatchErrorOccurredEvent(Web.this, functionName,
+	        		container.getRegistrar().dispatchErrorOccurredEvent(Web.this, functionName,
 	        				ErrorMessages.ERROR_WEB_UNABLE_TO_POST, text, webProps.urlString);
 	        	}
 	        }
@@ -465,7 +474,7 @@ public class Web extends AndroidNonvisibleComponent implements Component {
 	        		sContainer.$formService().dispatchErrorOccurredEvent(Web.this, "PostFile",
 	        				e.getErrorMessageNumber());
 	        	} else {
-	        		container.$form().dispatchErrorOccurredEvent(Web.this, "PostFile",
+	        		container.getRegistrar().dispatchErrorOccurredEvent(Web.this, "PostFile",
 	        				e.getErrorMessageNumber());
 	        	}
 	        } catch (Exception e) {
@@ -473,7 +482,7 @@ public class Web extends AndroidNonvisibleComponent implements Component {
 	        		sContainer.$formService().dispatchErrorOccurredEvent(Web.this, "PostFile",
 	        				ErrorMessages.ERROR_WEB_UNABLE_TO_POST_FILE, path, webProps.urlString);
 	        	} else {
-	        		container.$form().dispatchErrorOccurredEvent(Web.this, "PostFile",
+	        		container.getRegistrar().dispatchErrorOccurredEvent(Web.this, "PostFile",
 	        				ErrorMessages.ERROR_WEB_UNABLE_TO_POST_FILE, path, webProps.urlString);
 	        	}
 	        }
@@ -495,8 +504,20 @@ public class Web extends AndroidNonvisibleComponent implements Component {
   
   public void GotText(String url, int responseCode, String responseType, String responseContent) {
     // invoke the application's "GotText" event handler.
-    EventDispatcher.dispatchEvent(this, "GotText", url, responseCode, responseType,
-        responseContent);
+    if (gotTextListener == null) {
+      EventDispatcher.dispatchEvent(this, "GotText", url, responseCode, responseType,
+          responseContent);
+    } else {
+      gotTextListener.GotText(url, responseCode, responseType, responseContent);
+    }
+  }
+  
+  public void setGotTextListener(GotTextListener listener) {
+    gotTextListener = listener;
+  }
+  
+  public interface GotTextListener {
+    public void GotText(String url, int responseCode, String responseType, String responseContent);    
   }
 
   /**
@@ -529,7 +550,7 @@ public class Web extends AndroidNonvisibleComponent implements Component {
 	    	if (isaService) {
 	    		sContainer.$formService().dispatchErrorOccurredEvent(this, "BuildPostData", e.errorNumber, e.index);
 	    	} else {
-	    		container.$form().dispatchErrorOccurredEvent(this, "BuildPostData", e.errorNumber, e.index);
+	    		container.getRegistrar().dispatchErrorOccurredEvent(this, "BuildPostData", e.errorNumber, e.index);
 	    	}
 	      return "";
 	    }
@@ -615,7 +636,7 @@ public class Web extends AndroidNonvisibleComponent implements Component {
 		   sContainer.$formService().dispatchErrorOccurredEvent(this, "JsonTextDecode",
 				   ErrorMessages.ERROR_WEB_JSON_TEXT_DECODE_FAILED, jsonText);
 	   } else {
-		   container.$form().dispatchErrorOccurredEvent(this, "JsonTextDecode",
+		   container.getRegistrar().dispatchErrorOccurredEvent(this, "JsonTextDecode",
 				   ErrorMessages.ERROR_WEB_JSON_TEXT_DECODE_FAILED, jsonText);
 	   }
      return "";
@@ -661,7 +682,7 @@ public class Web extends AndroidNonvisibleComponent implements Component {
 		   sContainer.$formService().dispatchErrorOccurredEvent(this, "HtmlTextDecode",
 				   ErrorMessages.ERROR_WEB_HTML_TEXT_DECODE_FAILED, htmlText);
 	   } else {
-		   container.$form().dispatchErrorOccurredEvent(this, "HtmlTextDecode",
+		   container.getRegistrar().dispatchErrorOccurredEvent(this, "HtmlTextDecode",
 				   ErrorMessages.ERROR_WEB_HTML_TEXT_DECODE_FAILED, htmlText);
 	   }
      return "";
@@ -723,7 +744,7 @@ public class Web extends AndroidNonvisibleComponent implements Component {
 				}
 			});
          } else {
-        	 container.$form().runOnUiThread(new Runnable() {
+        	 container.getRegistrar().post(new Runnable() {
         		 @Override
         		 public void run() {
         			 GotFile(webProps.urlString, responseCode, responseType, path);
@@ -742,7 +763,7 @@ public class Web extends AndroidNonvisibleComponent implements Component {
 				}
 			});
          } else {
-        	 container.$form().runOnUiThread(new Runnable() {
+        	 container.getRegistrar().post(new Runnable() {
         		 @Override
         		 public void run() {
         			 GotText(webProps.urlString, responseCode, responseType, responseContent);
@@ -810,7 +831,7 @@ public class Web extends AndroidNonvisibleComponent implements Component {
 	    if (isaService) {
 	    	in = new BufferedInputStream(MediaUtil.openMedia(sContainer.$formService(), path));
 	    } else {
-	    	in = new BufferedInputStream(MediaUtil.openMedia(container.$form(), path));
+	    	in = new BufferedInputStream(MediaUtil.openMedia(container.$context(), path));
 	    }
 	    
 	    try {
@@ -972,14 +993,14 @@ public class Web extends AndroidNonvisibleComponent implements Component {
     		sContainer.$formService().dispatchErrorOccurredEvent(this, functionName,
     				ErrorMessages.ERROR_WEB_MALFORMED_URL, urlString);
     	} else {
-    		container.$form().dispatchErrorOccurredEvent(this, functionName,
+    		container.getRegistrar().dispatchErrorOccurredEvent(this, functionName,
     				ErrorMessages.ERROR_WEB_MALFORMED_URL, urlString);
     	}
     } catch (InvalidRequestHeadersException e) {
     	if (isaService) {
     		sContainer.$formService().dispatchErrorOccurredEvent(this, functionName, e.errorNumber, e.index);
     	} else {
-    		container.$form().dispatchErrorOccurredEvent(this, functionName, e.errorNumber, e.index);
+    		container.getRegistrar().dispatchErrorOccurredEvent(this, functionName, e.errorNumber, e.index);
     	}
     }
     return null;

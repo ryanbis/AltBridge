@@ -11,6 +11,7 @@ import com.xiledsystems.AlternateJavaBridgelib.components.Component;
 import com.xiledsystems.AlternateJavaBridgelib.components.Dates;
 import com.xiledsystems.AlternateJavaBridgelib.components.altbridge.util.TimerInternal;
 import com.xiledsystems.AlternateJavaBridgelib.components.events.EventDispatcher;
+import com.xiledsystems.AlternateJavaBridgelib.components.events.Events;
 
 /**
  * Clock provides the phone's clock, a timer, calendar and time calculations.
@@ -39,9 +40,9 @@ public class Clock extends AndroidNonvisibleComponent
     timerInternal = new TimerInternal(this);
 
     // Set up listeners
-    container.$form().registerForOnResume(this);
-    container.$form().registerForOnStop(this);    
-    container.$form().registerForOnDestroy(this);
+    container.getRegistrar().registerForOnResume(this);
+    container.getRegistrar().registerForOnStop(this);    
+    container.getRegistrar().registerForOnDestroy(this);
   }
   
   public Clock(SvcComponentContainer container) {
@@ -66,7 +67,11 @@ public class Clock extends AndroidNonvisibleComponent
   
   public void Timer() {
     if (timerAlwaysFires || onScreen) {
-      EventDispatcher.dispatchEvent(this, "Timer");
+    	if (eventListener != null) {
+			eventListener.eventDispatched(Events.TIMER);
+		} else {
+			EventDispatcher.dispatchEvent(this, Events.TIMER);
+		}
     }
   }
 

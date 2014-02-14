@@ -1,6 +1,8 @@
 package com.xiledsystems.AlternateJavaBridgelib.components.altbridge;
 
 import com.xiledsystems.AlternateJavaBridgelib.components.Component;
+import com.xiledsystems.AlternateJavaBridgelib.components.HandlesEventDispatching;
+import com.xiledsystems.AlternateJavaBridgelib.components.altbridge.util.Registrar;
 import com.xiledsystems.AlternateJavaBridgelib.components.altbridge.util.ViewUtil;
 import com.xiledsystems.AlternateJavaBridgelib.components.common.ComponentConstants;
 import com.xiledsystems.AlternateJavaBridgelib.components.events.EventDispatcher;
@@ -56,12 +58,7 @@ public class HSVArrangement extends AndroidViewComponent implements Component, C
 	  public Activity $context() {
 	    return context;
 	  }
-
-	  @Override
-	  public Form $form() {
-	    return container.$form();
-	  }
-
+	 
 	  @Override
 	  public void $add(AndroidViewComponent component) {
 	    viewLayout.add(component);
@@ -127,6 +124,26 @@ public class HSVArrangement extends AndroidViewComponent implements Component, C
 			EventDispatcher.dispatchEvent(this, "AnimationMiddle");
 			
 		}
+
+    @Override
+    public HandlesEventDispatching getDelegate() {
+     return container.getDelegate();
+    }
+
+    @Override
+    public Registrar getRegistrar() {
+      return container.getRegistrar();
+    }
+
+    @Override
+    public void $remove(AndroidViewComponent component) {
+      viewLayout.remove(component);
+    }
+
+	@Override
+	public void removeAllViews() {
+		viewLayout.getLayoutManager().removeAllViews();
+	}
 
 	  		
 }

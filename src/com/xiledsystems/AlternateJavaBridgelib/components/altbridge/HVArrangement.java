@@ -1,144 +1,151 @@
 package com.xiledsystems.AlternateJavaBridgelib.components.altbridge;
 
 import com.xiledsystems.AlternateJavaBridgelib.components.Component;
-import com.xiledsystems.AlternateJavaBridgelib.components.altbridge.util.MediaUtil;
+import com.xiledsystems.AlternateJavaBridgelib.components.HandlesEventDispatching;
+import com.xiledsystems.AlternateJavaBridgelib.components.altbridge.util.Registrar;
 import com.xiledsystems.AlternateJavaBridgelib.components.altbridge.util.ViewUtil;
 import com.xiledsystems.AlternateJavaBridgelib.components.common.ComponentConstants;
 import com.xiledsystems.AlternateJavaBridgelib.components.events.EventDispatcher;
-
 import android.app.Activity;
 import android.graphics.drawable.Drawable;
 import android.view.View;
 
 /**
- * A container for components that arranges them linearly, either
- * horizontally or vertically.
- *
+ * A container for components that arranges them linearly, either horizontally or vertically.
+ * 
  */
 
-
 public class HVArrangement extends AndroidViewComponent implements Component, ComponentContainer {
-  private final Activity context;
+	private final Activity context;
 
-  // Layout
-  private final int orientation;
-  private final LinearLayout viewLayout;
-  
-  //AJB
-  
-  private final Form form;
+	// Layout
+	private final int orientation;
+	private final LinearLayout viewLayout;
 
-  /**
-   * Creates a new HVArrangement component.
-   *
-   * @param container  container, component will be placed in
-   * @param orientation one of
-   *     {@link ComponentConstants#LAYOUT_ORIENTATION_HORIZONTAL}.
-   *     {@link ComponentConstants#LAYOUT_ORIENTATION_VERTICAL}
-  */
-  public HVArrangement(ComponentContainer container, int orientation) {
-    super(container);
-    form = container.$form();
-    context = container.$context();
+	// AJB
 
-    this.orientation = orientation;
-    viewLayout = new LinearLayout(context, orientation,
-        ComponentConstants.EMPTY_HV_ARRANGEMENT_WIDTH,
-        ComponentConstants.EMPTY_HV_ARRANGEMENT_HEIGHT);
+	/**
+	 * Creates a new HVArrangement component.
+	 * 
+	 * @param container
+	 *            container, component will be placed in
+	 * @param orientation
+	 *            one of {@link ComponentConstants#LAYOUT_ORIENTATION_HORIZONTAL}.
+	 *            {@link ComponentConstants#LAYOUT_ORIENTATION_VERTICAL}
+	 */
+	public HVArrangement(ComponentContainer container, int orientation) {
+		super(container);
+		context = container.$context();
 
-    
-    container.$add(this);
-  }
-  
-  public HVArrangement(ComponentContainer container, int orientation, int resourceId) {
-	    super(container);
-	    form = container.$form();
-	    context = container.$context();
+		this.orientation = orientation;
+		viewLayout = new LinearLayout(container, orientation, ComponentConstants.EMPTY_HV_ARRANGEMENT_WIDTH,
+				ComponentConstants.EMPTY_HV_ARRANGEMENT_HEIGHT);
 
-	    this.orientation = orientation;
-	    viewLayout = new LinearLayout(form, orientation,
-	        ComponentConstants.EMPTY_HV_ARRANGEMENT_WIDTH,
-	        ComponentConstants.EMPTY_HV_ARRANGEMENT_HEIGHT, resourceId);
+		container.$add(this);
+	}
 
-	    
-	    //container.$add(this);
-	  }
+	public HVArrangement(ComponentContainer container, int orientation, int resourceId) {
+		super(container);
+		context = container.$context();
 
-  // ComponentContainer implementation
+		this.orientation = orientation;
+		viewLayout = new LinearLayout(container, orientation, ComponentConstants.EMPTY_HV_ARRANGEMENT_WIDTH,
+				ComponentConstants.EMPTY_HV_ARRANGEMENT_HEIGHT, resourceId, true);
 
-  @Override
-  public Activity $context() {
-    return context;
-  }
+		// container.$add(this);
+	}
 
-  @Override
-  public Form $form() {
-    return container.$form();
-  }
+	// ComponentContainer implementation
 
-  @Override
-  public void $add(AndroidViewComponent component) {
-    viewLayout.add(component);
-  }
+	@Override
+	public Activity $context() {
+		return context;
+	}
 
-  @Override
-  public void setChildWidth(AndroidViewComponent component, int width) {
-    if (orientation == ComponentConstants.LAYOUT_ORIENTATION_HORIZONTAL) {
-      ViewUtil.setChildWidthForHorizontalLayout(component.getView(), width);
-    } else {
-      ViewUtil.setChildWidthForVerticalLayout(component.getView(), width);
-    }
-  }
+	@Override
+	public void $add(AndroidViewComponent component) {
+		viewLayout.add(component);
+	}
 
-  @Override
-  public void setChildHeight(AndroidViewComponent component, int height) {
-    if (orientation == ComponentConstants.LAYOUT_ORIENTATION_HORIZONTAL) {
-      ViewUtil.setChildHeightForHorizontalLayout(component.getView(), height);
-    } else {
-      ViewUtil.setChildHeightForVerticalLayout(component.getView(), height);
-    }
-  }
-  
-  /**
-   *  Assign an image to the background of this arrangement
-   *  
-   * @param resourceId The resource Id of the drawable to use
-   */
-  public void BackgroundImage(int resourceId) {
-	  viewLayout.getLayoutManager().setBackgroundDrawable(form.getResources().getDrawable(resourceId));
-  }
-  
-  /**
-   *  Assign a color to the background of this arrangement
-   *  
-   * @param color The color
-   */
-  public void BackgroundColor(int color) {
-	  viewLayout.getLayoutManager().setBackgroundColor(color);
-  }
-  
-  /**
-   * Alternate method for setting the background image
-   * of this component. Mostly used with SpriteSheetHelper
-   * when managing multiple images in a sprite sheet.
-   * 
-   * @param drawable
-   */
-  public void Drawable(Drawable drawable) {
-	  viewLayout.getLayoutManager().setBackgroundDrawable(drawable);
-  }
+	@Override
+	public void setChildWidth(AndroidViewComponent component, int width) {
+		if (orientation == ComponentConstants.LAYOUT_ORIENTATION_HORIZONTAL) {
+			ViewUtil.setChildWidthForHorizontalLayout(component.getView(), width);
+		} else {
+			ViewUtil.setChildWidthForVerticalLayout(component.getView(), width);
+		}
+	}
 
-  // AndroidViewComponent implementation
+	@Override
+	public void setChildHeight(AndroidViewComponent component, int height) {
+		if (orientation == ComponentConstants.LAYOUT_ORIENTATION_HORIZONTAL) {
+			ViewUtil.setChildHeightForHorizontalLayout(component.getView(), height);
+		} else {
+			ViewUtil.setChildHeightForVerticalLayout(component.getView(), height);
+		}
+	}
 
-  @Override
-  public View getView() {
-    return viewLayout.getLayoutManager();
-  }
-  
-  @Override
+	/**
+	 * Assign an image to the background of this arrangement
+	 * 
+	 * @param resourceId
+	 *            The resource Id of the drawable to use
+	 */
+	public void BackgroundImage(int resourceId) {
+		viewLayout.getLayoutManager().setBackgroundDrawable($context().getResources().getDrawable(resourceId));
+	}
+
+	/**
+	 * Assign a color to the background of this arrangement
+	 * 
+	 * @param color
+	 *            The color
+	 */
+	public void BackgroundColor(int color) {
+		viewLayout.getLayoutManager().setBackgroundColor(color);
+	}
+
+	/**
+	 * Alternate method for setting the background image of this component. Mostly used with SpriteSheetHelper when
+	 * managing multiple images in a sprite sheet.
+	 * 
+	 * @param drawable
+	 */
+	public void Drawable(Drawable drawable) {
+		viewLayout.getLayoutManager().setBackgroundDrawable(drawable);
+	}
+
+	// AndroidViewComponent implementation
+
+	@Override
+	public View getView() {
+		return viewLayout.getLayoutManager();
+	}
+
+	@Override
 	public void postAnimEvent() {
 		EventDispatcher.dispatchEvent(this, "AnimationMiddle");
-		
+
+	}
+
+	@Override
+	public HandlesEventDispatching getDelegate() {
+		return container.getDelegate();
+	}
+
+	@Override
+	public Registrar getRegistrar() {
+		return container.getRegistrar();
+	}
+
+	@Override
+	public void $remove(AndroidViewComponent component) {
+		viewLayout.remove(component);
+	}
+
+	@Override
+	public void removeAllViews() {
+		viewLayout.getLayoutManager().removeAllViews();
 	}
 
 }

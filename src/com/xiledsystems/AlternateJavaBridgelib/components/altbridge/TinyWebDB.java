@@ -62,7 +62,7 @@ public class TinyWebDB extends AndroidNonvisibleComponent implements Component {
    * @param container the Form that this component is contained in.
    */
   public TinyWebDB(ComponentContainer container) {
-    super(container.$form());
+    super(container);
     // We use androidUIHandler when we set up operations (like
     // postStoreVaue and getStoreValue) that run asynchronously in a
     // separate thread, but which themselves want to cause actions

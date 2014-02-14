@@ -18,7 +18,7 @@ public class ContactPicker extends Picker implements ActivityResultListener {
 
   private static final String[] PROJECTION = {
 	  ContactsContract.Contacts.DISPLAY_NAME,
-	  ContactsContract.CommonDataKinds.Email._ID
+	  ContactsContract.Contacts._ID,	  
   };
   private static final int NAME_INDEX = 0;
   private static final int EMAIL_INDEX = 1;
@@ -28,6 +28,7 @@ public class ContactPicker extends Picker implements ActivityResultListener {
 
   protected String contactName;
   protected String emailAddress;
+  protected String emailAddress2;
   protected String contactPictureUri;
 
   /**
@@ -42,6 +43,10 @@ public class ContactPicker extends Picker implements ActivityResultListener {
   public ContactPicker(ComponentContainer container, int resourceId) {
 	    this(container, ContactsContract.Contacts.CONTENT_URI, resourceId);
 	  }
+  
+  public ContactPicker(ComponentContainer container, int resourceId, boolean ignoreNullView) {
+    this(container, ContactsContract.Contacts.CONTENT_URI, resourceId, ignoreNullView);
+  }
 
   protected ContactPicker(ComponentContainer container, Uri intentUri) {
     super(container);
@@ -54,6 +59,12 @@ public class ContactPicker extends Picker implements ActivityResultListener {
 	    activityContext = container.$context();
 	    this.intentUri = intentUri;
 	  }
+  
+  protected ContactPicker(ComponentContainer container, Uri intentUri, int resourceId, boolean ignoreNullView) {
+    super(container, resourceId, ignoreNullView);
+    activityContext = container.$context();
+    this.intentUri = intentUri;
+  }
 
   /**
    * Picture URI for this contact, which can be
@@ -82,7 +93,7 @@ public class ContactPicker extends Picker implements ActivityResultListener {
     // in this version of the picker, we'll just go to PuntContactSelection.  Note that there
     // is still a general problem with contact picking on Motoblur.
 //    if (SdkLevel.getLevel() > SdkLevel.LEVEL_DONUT) {
-//      container.$form().dispatchErrorOccurredEvent(this, "EmailAddress",
+//      container.getRegistrar().dispatchErrorOccurredEvent(this, "EmailAddress",
 //          ErrorMessages.ERROR_FUNCTIONALITY_NOT_SUPPORTED_CONTACT_EMAIL);
 //    }
     return ensureNotNull(emailAddress);
@@ -106,7 +117,7 @@ public class ContactPicker extends Picker implements ActivityResultListener {
     if (requestCode == this.requestCode && resultCode == Activity.RESULT_OK) {
       Log.i("ContactPicker", "received intent is " + data);
       Uri contactUri = data.getData();
-      if (checkContactUri(contactUri, "//com.android.contacts/data")) {
+      if (checkContactUri(contactUri, "//com.android.contacts/contact")) {
         Cursor cursor = null;
         try {
           cursor = activityContext.getContentResolver().query(contactUri,
@@ -126,6 +137,7 @@ public class ContactPicker extends Picker implements ActivityResultListener {
           // it's unclear what's going on.
           Log.i("ContactPicker", "checkContactUri failed: D");
           puntContactSelection(ErrorMessages.ERROR_PHONE_UNSUPPORTED_CONTACT_PICKER);
+          e.printStackTrace();
         } finally {
           cursor.close();
         }
@@ -157,7 +169,8 @@ public class ContactPicker extends Picker implements ActivityResultListener {
       return false;
     }
     String UriSpecific = suspectUri.getSchemeSpecificPart();
-    if (UriSpecific.startsWith("//com.android.contacts/contact")) {
+    
+    if (UriSpecific.startsWith("//contacts/people")) {
       Log.i("ContactPicker", "checkContactUri failed: B");
       // We trap this specific pattern in order be able to show the
       // error about search.  This error will occur with contactPicker but not
@@ -180,7 +193,7 @@ public class ContactPicker extends Picker implements ActivityResultListener {
     contactName = "";
     emailAddress = "";
     contactPictureUri = "";
-    container.$form().dispatchErrorOccurredEvent(this, "", errorNumber);
+    container.getRegistrar().dispatchErrorOccurredEvent(this, "", errorNumber);
   }
 
   protected String getEmailAddress(String emailId) {
@@ -192,7 +205,7 @@ public class ContactPicker extends Picker implements ActivityResultListener {
         new String[] { emailId }, null);
     try {
       if (cursor.moveToFirst()) {
-        data = guardCursorGetString(cursor, 0);
+        data = guardCursorGetString(cursor, cursor.getColumnIndex(Email.DATA));
       }
     } finally {
       cursor.close();

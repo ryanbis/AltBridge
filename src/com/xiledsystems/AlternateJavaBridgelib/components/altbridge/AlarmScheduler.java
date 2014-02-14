@@ -32,9 +32,8 @@ public class AlarmScheduler extends AndroidNonvisibleComponent implements OnStar
 	public AlarmScheduler(ComponentContainer container) {
 		super(container);
 		wakeTimes = new DoubleList();
-		registeredAlarms = new TinyDB(container.$form());
-		container.$form().registerForOnStart(this);
-		
+		registeredAlarms = new TinyDB(container);
+		container.getRegistrar().registerForOnStart(this);		
 	}
 	
 	/**
@@ -49,7 +48,6 @@ public class AlarmScheduler extends AndroidNonvisibleComponent implements OnStar
 		super(container);
 		wakeTimes = new DoubleList();
 		registeredAlarms = new TinyDB(container.$formService());
-		container.$formService().registerForOnStartCommand(this);
 	}
 	
 	/**
@@ -78,6 +76,7 @@ public class AlarmScheduler extends AndroidNonvisibleComponent implements OnStar
 			remove = true;
 		}
 		intent.putExtra(Form.ALARM_EVENT, alarmId);
+		intent.putExtra(Form.ALARM_TAG, tag);
 		if (isService) {
 			pintent = PendingIntent.getService(context, alarmId, intent, PendingIntent.FLAG_CANCEL_CURRENT);
 		} else {
@@ -157,6 +156,17 @@ public class AlarmScheduler extends AndroidNonvisibleComponent implements OnStar
 		}
 	}
 	
+	public boolean hasAlarms() {
+		return wakeTimes != null && wakeTimes.size() > 0;
+	}
+	
+	public boolean isAlarmRegistered(String tag) {
+	  if (wakeTimes != null) {
+	    return wakeTimes.listOneContains(tag);
+	  }
+	  return false;
+	}
+	
 	/**
 	 * Use this to cancel an alarm that you previously added.
 	 * 
@@ -178,8 +188,6 @@ public class AlarmScheduler extends AndroidNonvisibleComponent implements OnStar
 		}
 	}
 		
-
-	@SuppressWarnings("unchecked")
 	@Override
 	public void onStartCommand() {
 		if (!registeredAlarms.GetValue(ALARM).equals("null")) {
@@ -189,15 +197,12 @@ public class AlarmScheduler extends AndroidNonvisibleComponent implements OnStar
 			} catch (ClassCastException e) {
 				Log.e(TAG, "Past alarms were stored, but alarm scheduler alarm data appears corrupt.");				
 			}
-			if (!tmp.equals(wakeTimes)) {
-				if (tmp.size() < 1) {
-					wakeTimes = tmp;
-				}
+			if (!tmp.equals(wakeTimes)) {				
+				wakeTimes = tmp;				
 			}
 		}
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public void onStart() {
 		if (!registeredAlarms.GetValue(ALARM).equals("null")) {
@@ -207,10 +212,8 @@ public class AlarmScheduler extends AndroidNonvisibleComponent implements OnStar
 			} catch (ClassCastException e) {
 				Log.e(TAG, "Past alarms were stored, but alarm scheduler alarm data appears corrupt.");				
 			}
-			if (!tmp.equals(wakeTimes)) {
-				if (tmp.size() < 1) {
-					wakeTimes = tmp;
-				}
+			if (!tmp.equals(wakeTimes)) {				
+				wakeTimes = tmp;				
 			}
 		}
 	}

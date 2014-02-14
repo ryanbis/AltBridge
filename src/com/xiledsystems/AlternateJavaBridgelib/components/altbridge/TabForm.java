@@ -1,6 +1,11 @@
 package com.xiledsystems.AlternateJavaBridgelib.components.altbridge;
 
+import com.xiledsystems.AlternateJavaBridgelib.components.Component;
+import com.xiledsystems.AlternateJavaBridgelib.components.HandlesEventDispatching;
+import com.xiledsystems.AlternateJavaBridgelib.components.altbridge.util.Registrar;
 import com.xiledsystems.AlternateJavaBridgelib.components.common.ComponentConstants;
+
+import android.app.Activity;
 import android.app.TabActivity;
 import android.content.Intent;
 import android.graphics.drawable.BitmapDrawable;
@@ -13,7 +18,14 @@ import android.widget.TabWidget;
 
 
 @SuppressWarnings("deprecation")
-public class TabForm extends TabActivity {
+/**
+ * This class has been deprecated in favor of using Fragments. Some stuff may have been
+ * broken in here since fragments have been added.
+ * 
+ * @author Ryan Bis
+ *
+ */
+public class TabForm extends TabActivity implements ComponentContainer, HandlesEventDispatching {
 
 	private final static String LOG_TAG = "TabForm";
 	
@@ -105,5 +117,63 @@ public class TabForm extends TabActivity {
 	void $define() {		
 		throw new UnsupportedOperationException();		
 	}
+
+  @Override
+  public Activity $context() {    
+    return this;
+  }
+
+  @Override
+  public HandlesEventDispatching getDelegate() {    
+    return this;
+  }
+
+  @Override
+  public Registrar getRegistrar() {    
+    return null;
+  }
+
+  @Override
+  public void $add(AndroidViewComponent component) {
+    // TODO Auto-generated method stub
+    
+  }
+
+  @Override
+  public void $remove(AndroidViewComponent component) {
+    // TODO Auto-generated method stub
+    
+  }
+
+  @Override
+  public void setChildWidth(AndroidViewComponent component, int width) {
+    // TODO Auto-generated method stub
+    
+  }
+
+  @Override
+  public void setChildHeight(AndroidViewComponent component, int height) {
+    // TODO Auto-generated method stub
+    
+  }
+
+  @Override
+  public boolean canDispatchEvent(Component component, String eventName) {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public boolean dispatchEvent(Component component, String componentName, String eventName,
+      Object[] args) {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+@Override
+public void removeAllViews() {
+	// TODO Auto-generated method stub
+	
+}
 	
 }

@@ -157,10 +157,14 @@ public class SlideDrawer extends ViewGroup {
 		mAnimateOnClick = true;
 		mInvert = (orientation == ORIENTATION_TTB || orientation == ORIENTATION_LTR );
 		
-		
+		if (handleId == 0) {
+		  handleId = context.getResources().getIdentifier("DrawerSlider_handle", "styleable", context.getPackageName());
+		}
 		if ( handleId == 0 ) { throw new IllegalArgumentException( "The handle attribute is required and must refer "
 				+ "to a valid child." ); }
-		
+		if (contentId == 0) {
+		  contentId = context.getResources().getIdentifier("DrawerSlider_content", "styleable", context.getPackageName());
+        }
 		if ( contentId == 0 ) { throw new IllegalArgumentException( "The content attribute is required and must refer "
 				+ "to a valid child." ); }
 		
@@ -199,12 +203,12 @@ public class SlideDrawer extends ViewGroup {
 		
 		for (int i = 0; i < count; i++) {
 			if (attrs.getAttributeName(i).equalsIgnoreCase("handle")) {
-				String id = attrs.getAttributeValue(i).replace("@", "");				
-				handleId = Integer.parseInt(id);
+				String id = attrs.getAttributeValue(i).split("/")[1];				
+				handleId = context.getResources().getIdentifier(id, "id", context.getPackageName());
 			}
 			if (attrs.getAttributeName(i).equalsIgnoreCase("content")) {				
-				String id = attrs.getAttributeValue(i).replace("@", "");				
-				contentId = Integer.parseInt(id);
+				String id = attrs.getAttributeValue(i).split("/")[1];				
+				contentId = context.getResources().getIdentifier(id, "id", context.getPackageName());
 			}
 			if (attrs.getAttributeName(i).equalsIgnoreCase("direction")) {
 				String id = attrs.getAttributeValue(i).replace("@", "");				

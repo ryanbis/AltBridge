@@ -1,5 +1,6 @@
 package com.xiledsystems.AlternateJavaBridgelib.components.OpenGL;
 
+import java.util.ArrayList;
 import java.util.Set;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -34,7 +35,7 @@ public class GLRenderer implements Renderer {
 	private float cameraNear = 2.99f;
 	private float cameraFar = 7f;
 	private float cameraEye[] = { 1f, 1f };		
-	
+	private ArrayList<Runnable> postedRunnables = new ArrayList<Runnable>();
 	
 	private float[] mVMatrix = new float[16];
 	private float[] mProjMatrix = new float[16];
@@ -44,8 +45,8 @@ public class GLRenderer implements Renderer {
 	private boolean colorChanged;
 	private boolean updateCamera;
 	private final MotionEventParser parser;
-	private boolean reload;
-		
+
+	
 	public GLRenderer(OpenGLView view) {
 		parser = new MotionEventParser();
 		this.view = view;
@@ -57,10 +58,6 @@ public class GLRenderer implements Renderer {
 		bValue = Color.blue(color) / 255f;
 		colorChanged = true;		
 				
-	}
-	
-	public void reload() {
-		reload = true;
 	}
 		
 	protected float[] ViewMatrix() {
@@ -112,6 +109,10 @@ public class GLRenderer implements Renderer {
 		updateCamera = true;
 	}
 	
+	public void postOnGLThread(Runnable action) {
+		postedRunnables.add(action);
+	}
+	
 	public float CameraFar() {
 		return cameraFar;
 	}
@@ -149,8 +150,7 @@ public class GLRenderer implements Renderer {
 		view.canvasCoordXRatio = view.getWidth() / view.xSize;
 		view.canvasCoordYRatio = view.getHeight() / view.ySize;
 		
-		Matrix.frustumM(mProjMatrix, 0, -ratio, ratio, -1, 1, cameraNear, cameraFar);
-						
+		Matrix.frustumM(mProjMatrix, 0, -ratio, ratio, -1, 1, cameraNear, cameraFar);						
 				
 		for (onSurfaceChangedListener component : onChangedListeners) {
 			component.onSurfaceChanged();
@@ -171,11 +171,17 @@ public class GLRenderer implements Renderer {
 		if (updateCamera) {
 			Matrix.frustumM(mProjMatrix, 0, -ratio, ratio, -1, 1, cameraNear, cameraFar);			
 			updateCamera = false;
+		}		
+		// Now draw all objects
+		for (GLObject obj : objects) {
+			obj.onDrawFrame();
 		}
-		synchronized (objects) {
-			for (GLObject obj : objects) {
-				obj.onDrawFrame();
-			}
+		
+		// Run any posted actions now
+		if (postedRunnables.size() > 0) {
+			for (Runnable run : postedRunnables) {
+				run.run();
+			}			
 		}		
 	}
 	
@@ -387,6 +393,14 @@ public class GLRenderer implements Renderer {
 	
 	protected float convertYCoord(float coord) {
 		return (coord * yRatio) - 1f;
+	}
+	
+	public static void checkGLError(String operation) {
+		int error;
+		while ((error = GLES20.glGetError()) != GLES20.GL_NO_ERROR) {
+			Log.e("GLES20Renderer", operation + ": glError " + error);
+            throw new RuntimeException(operation + ": glError " + error);
+		}
 	}
 
 }

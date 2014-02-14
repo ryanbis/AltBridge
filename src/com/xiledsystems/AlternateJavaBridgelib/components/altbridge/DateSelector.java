@@ -3,6 +3,7 @@ package com.xiledsystems.AlternateJavaBridgelib.components.altbridge;
 import java.util.Calendar;
 
 import com.xiledsystems.AlternateJavaBridgelib.components.events.EventDispatcher;
+import com.xiledsystems.AlternateJavaBridgelib.components.events.Events;
 
 import android.app.DatePickerDialog;
 import android.widget.DatePicker;
@@ -15,8 +16,7 @@ public class DateSelector extends ButtonBase {
 	private int mMonth;
 	private int mDay;
 	
-	private DatePickerDialog.OnDateSetListener selectListener = new DatePickerDialog.OnDateSetListener() {
-		
+	private DatePickerDialog.OnDateSetListener selectListener = new DatePickerDialog.OnDateSetListener() {		
 		@Override
 		public void onDateSet(DatePicker view, int year, int monthOfYear,
 				int dayOfMonth) {
@@ -78,7 +78,11 @@ public class DateSelector extends ButtonBase {
 	}
 	
 	private void dateSet(int year, int monthOfYear, int dayOfMonth) {
-		EventDispatcher.dispatchEvent(this, "DateSet", year, monthOfYear, dayOfMonth);
+		if (eventListener != null) {
+			eventListener.eventDispatched(Events.DATE_SET, year, monthOfYear, dayOfMonth);
+		} else {
+			EventDispatcher.dispatchEvent(this, Events.DATE_SET, year, monthOfYear, dayOfMonth);
+		}
 	}
 	
 	/**
@@ -88,6 +92,17 @@ public class DateSelector extends ButtonBase {
 	public void click() {		
 		dialog = new DatePickerDialog(container.$context(), selectListener, mYear, mMonth, mDay);
 		dialog.show();		
+	}
+	
+	/**
+	 * 
+	 * @return An int array which returns the current saved date in the date
+	 * selector. The first index is the year, the second is the month,
+	 * and the third is the day.
+	 * 
+	 */
+	public int[] GetDate() {
+		return new int[] { mYear, mMonth+1, mDay };
 	}
 
 

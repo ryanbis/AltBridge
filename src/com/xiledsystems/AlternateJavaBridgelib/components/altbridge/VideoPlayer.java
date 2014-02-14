@@ -76,7 +76,7 @@ public final class VideoPlayer extends AndroidViewComponent
     // set a default size
     container.setChildWidth(this, ComponentConstants.VIDEOPLAYER_PREFERRED_WIDTH);
     container.setChildHeight(this, ComponentConstants.VIDEOPLAYER_PREFERRED_HEIGHT);
-    container.$form().registerForOnInitialize(this);
+    container.getRegistrar().registerForOnInitialize(this);
     sourcePath = "";
   }
   
@@ -94,7 +94,7 @@ public final class VideoPlayer extends AndroidViewComponent
 	    // set a default size
 	    //container.setChildWidth(this, ComponentConstants.VIDEOPLAYER_PREFERRED_WIDTH);
 	    //container.setChildHeight(this, ComponentConstants.VIDEOPLAYER_PREFERRED_HEIGHT);
-	    container.$form().registerForOnInitialize(this);
+	    container.getRegistrar().registerForOnInitialize(this);
 	    sourcePath = "";
 	  }
 
@@ -139,17 +139,17 @@ public final class VideoPlayer extends AndroidViewComponent
 
       if (resourceId!=-1) {
     	  try {
-    		  MediaUtil.loadVideoView((VideoView) container.$context().findViewById(resourceId), container.$form(), sourcePath);
+    		  MediaUtil.loadVideoView((VideoView) container.$context().findViewById(resourceId), container.$context(), sourcePath);
     	  } catch (IOException e) {
-    		  container.$form().dispatchErrorOccurredEvent(this, "Source", ErrorMessages.ERROR_UNABLE_TO_LOAD_MEDIA, sourcePath);
+    		  container.getRegistrar().dispatchErrorOccurredEvent(this, "Source", ErrorMessages.ERROR_UNABLE_TO_LOAD_MEDIA, sourcePath);
     		  return;
     	  }
     	  
       } else {
     	  try {
-    		  MediaUtil.loadVideoView(videoView, container.$form(), sourcePath);
+    		  MediaUtil.loadVideoView(videoView, container.$context(), sourcePath);
     	  } catch (IOException e) {
-    		  container.$form().dispatchErrorOccurredEvent(this, "Source",
+    		  container.getRegistrar().dispatchErrorOccurredEvent(this, "Source",
     				  ErrorMessages.ERROR_UNABLE_TO_LOAD_MEDIA, sourcePath);
     		  return;
     	  }
@@ -227,7 +227,7 @@ public final class VideoPlayer extends AndroidViewComponent
   public boolean onError(MediaPlayer m, int what, int extra) {
     Log.e("VideoPlayer", "onError: what is " + what + " 0x" + Integer.toHexString(what) +
         ", extra is " + extra + " 0x" + Integer.toHexString(extra));
-    container.$form().dispatchErrorOccurredEvent(this, "Source",
+    container.getRegistrar().dispatchErrorOccurredEvent(this, "Source",
         ErrorMessages.ERROR_UNABLE_TO_LOAD_MEDIA, sourcePath);
     return true;
   }
@@ -301,8 +301,8 @@ public final class VideoPlayer extends AndroidViewComponent
 	public void onInitialize() {
 		
 		if (autoResize) {
-			Width((int) (container.$form().scrnWidth * widthMultiplier));
-			Height((int) (container.$form().scrnHeight * heightMultiplier));
+			Width((int) (container.getRegistrar().getAvailWidth() * widthMultiplier));
+			Height((int) (container.getRegistrar().getAvailHeight() * heightMultiplier));
 		}
 		
 	}

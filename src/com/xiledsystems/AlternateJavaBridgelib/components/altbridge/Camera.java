@@ -13,11 +13,14 @@ import java.util.Date;
 
 import com.xiledsystems.AlternateJavaBridgelib.components.Component;
 import com.xiledsystems.AlternateJavaBridgelib.components.events.EventDispatcher;
+import com.xiledsystems.AlternateJavaBridgelib.components.events.Events;
 import com.xiledsystems.AlternateJavaBridgelib.components.util.ErrorMessages;
 
 /**
  * Camera provides access to the phone's camera
  *
+ *  NOTE: DON'T FORGET TO ADD "WRITE_EXTERNAL_STORAGE" permission 
+ *  to your manifest if you plan to take a picture
  *
  */
 
@@ -41,8 +44,61 @@ public class Camera extends AndroidNonvisibleComponent
     super(container);    
   }
 
+  /** Same as the regular TakePicture method, but allows you to replace the
+  *   default "app_inventor" prefix with a string of your choosing
+  *   If you want to instead set the full path instead of just the prefix
+  *   choose true for the fullPath boolean
+  *
+  *   NOTE: BE CAREFUL using fullPath boolean.  You MUST provide a correct path or
+  *   the method will throw an exception.  Make sure to start with a backslash "/"
+  *   and DO NOT specify file type.  It is added at the end and is always a .jpg
+  *
+  *   @param prefix - the name of the picture prefix
+  *   @param fullPath - when set to true uses the prefix String as the full
+  *                     file path
+  */
+  public String TakePictureAdvanced(String prefix, boolean fullPath) {
+    Date date = new Date();
+    String state = Environment.getExternalStorageState();
+
+    if (Environment.MEDIA_MOUNTED.equals(state)) {
+      Log.i("CameraComponent", "External storage is available and writable");
+
+      if (fullPath) {
+        imageFile = Uri.fromFile(new File(Environment.getExternalStorageDirectory(),
+        prefix.trim() + ".jpg"));
+      } else {
+
+        imageFile = Uri.fromFile(new File(Environment.getExternalStorageDirectory(),
+        "/Pictures/" + prefix + "_" + date.getTime()
+        + ".jpg"));
+      }
+
+      ContentValues values = new ContentValues();
+      values.put(MediaStore.Images.Media.DATA, imageFile.getPath());
+      values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
+      values.put(MediaStore.Images.Media.TITLE, imageFile.getLastPathSegment());
+
+      if (requestCode == 0) {
+        requestCode = container.getRegistrar().registerForActivityResult(this);
+      }
+
+      Uri imageUri = container.$context().getContentResolver().insert(
+        MediaStore.Images.Media.INTERNAL_CONTENT_URI, values);
+      Intent intent = new Intent(CAMERA_INTENT);
+      intent.putExtra(CAMERA_OUTPUT, imageUri);
+      container.$context().startActivityForResult(intent, requestCode);
+    } else if (Environment.MEDIA_MOUNTED_READ_ONLY.equals(state)) {
+    	container.getRegistrar().dispatchErrorOccurredEvent(this, "TakePicture",
+          ErrorMessages.ERROR_MEDIA_EXTERNAL_STORAGE_READONLY);
+    } else {
+    	container.getRegistrar().dispatchErrorOccurredEvent(this, "TakePicture",
+          ErrorMessages.ERROR_MEDIA_EXTERNAL_STORAGE_NOT_AVAILABLE);
+    }
+    return imageFile.toString();
+  }
   
-  public void TakePicture() {
+  public String TakePicture() {
     Date date = new Date();
     String state = Environment.getExternalStorageState();
 
@@ -59,7 +115,7 @@ public class Camera extends AndroidNonvisibleComponent
       values.put(MediaStore.Images.Media.TITLE, imageFile.getLastPathSegment());
 
       if (requestCode == 0) {
-        requestCode = container.$form().registerForActivityResult(this);
+        requestCode = container.getRegistrar().registerForActivityResult(this);
       }
 
       Uri imageUri = container.$context().getContentResolver().insert(
@@ -68,12 +124,13 @@ public class Camera extends AndroidNonvisibleComponent
       intent.putExtra(CAMERA_OUTPUT, imageUri);
       container.$context().startActivityForResult(intent, requestCode);
     } else if (Environment.MEDIA_MOUNTED_READ_ONLY.equals(state)) {
-    	container.$form().dispatchErrorOccurredEvent(this, "TakePicture",
+    	container.getRegistrar().dispatchErrorOccurredEvent(this, "TakePicture",
           ErrorMessages.ERROR_MEDIA_EXTERNAL_STORAGE_READONLY);
     } else {
-    	container.$form().dispatchErrorOccurredEvent(this, "TakePicture",
+    	container.getRegistrar().dispatchErrorOccurredEvent(this, "TakePicture",
           ErrorMessages.ERROR_MEDIA_EXTERNAL_STORAGE_NOT_AVAILABLE);
     }
+    return imageFile.toString();
   }
 
   @Override
@@ -83,7 +140,7 @@ public class Camera extends AndroidNonvisibleComponent
     if (requestCode == this.requestCode && resultCode == Activity.RESULT_OK) {
       File image = new File(imageFile.getPath());
       if (image.length() != 0) {
-        AfterPicture(imageFile.toString());
+        AfterPicture(imageFile.toString(), imageFile);
       } else {
         deleteFile(imageFile);  // delete empty file
         // see if something useful got returned in the data
@@ -91,10 +148,10 @@ public class Camera extends AndroidNonvisibleComponent
           Uri tryImageUri = data.getData();
           Log.i("CameraComponent", "Calling Camera.AfterPicture with image path "
               + tryImageUri.toString());
-          AfterPicture(tryImageUri.toString());
+          AfterPicture(tryImageUri.toString(), tryImageUri);
         } else {
           Log.i("CameraComponent", "Couldn't find an image file from the Camera result");
-          container.$form().dispatchErrorOccurredEvent(this, "TakePicture",
+          container.getRegistrar().dispatchErrorOccurredEvent(this, "TakePicture",
               ErrorMessages.ERROR_CAMERA_NO_IMAGE_RETURNED);
         }
       }
@@ -119,7 +176,11 @@ public class Camera extends AndroidNonvisibleComponent
   }
 
   
-  public void AfterPicture(String image) {
-    EventDispatcher.dispatchEvent(this, "AfterPicture", image);
+  public void AfterPicture(String image, Uri imageUri) {
+	  if (eventListener != null) {
+		  eventListener.eventDispatched(Events.AFTER_PICTURE, image, imageUri);
+	  } else {
+		  EventDispatcher.dispatchEvent(this, Events.AFTER_PICTURE, image, imageUri);
+	  }
   }
 }

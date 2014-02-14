@@ -136,7 +136,7 @@ public class FilePicker extends Picker implements ActivityResultListener, Delete
 
 	@Override
 	public void onDelete() {
-		container.$form().unregisterForActivityResult(this);
+		container.getRegistrar().unregisterForActivityResult(this);
 	}
 
 

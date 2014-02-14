@@ -1,8 +1,7 @@
 package com.xiledsystems.AlternateJavaBridgelib.components.OpenGL;
 
-import java.util.List;
-
-import com.xiledsystems.AlternateJavaBridgelib.components.altbridge.collect.Lists;
+import java.util.HashSet;
+import java.util.Set;
 
 public class Updater extends Thread {
 	
@@ -13,7 +12,7 @@ public class Updater extends Thread {
 	private int threadPriority = android.os.Process.THREAD_PRIORITY_DEFAULT;
 	private long lastTick;
 	private long nextTick;
-	private List<UpdateHandler> objects = Lists.newArrayList();
+	private Set<UpdateHandler> objects = new HashSet<UpdateHandler>();
 	private boolean requestRefresh;
 	private long sleepTime;
 	private long now;
@@ -29,13 +28,12 @@ public class Updater extends Thread {
 	@Override
 	public void run() {		
 		android.os.Process.setThreadPriority(threadPriority);
-		try {
-			
+		try {			
 			while (enabled) {
 				now = System.nanoTime();
 				if (now >= nextTick) {
-					//synchronized (objects) {
-						for (UpdateHandler obj : objects) {
+					synchronized (objects) {
+						for (UpdateHandler obj : objects) {							
 							if (obj.canDraw()) {	
 								requestRefresh = true;
 								obj.onUpdate(now);
@@ -48,7 +46,7 @@ public class Updater extends Thread {
 							canvas.requestRender();
 							requestRefresh = false;
 						}					
-					
+					}
 					lastTick = now;
 					nextTick = now + TICK_SIZE;
 					sleepTime = (System.nanoTime() - nextTick) / MS_IN_NANOS;

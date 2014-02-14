@@ -4,11 +4,12 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 
-import com.xiledsystems.AlternateJavaBridgelib.components.Component;
-import com.xiledsystems.AlternateJavaBridgelib.components.HandlesEventDispatching;
-
+import android.graphics.Color;
 import android.opengl.GLES20;
 import android.opengl.Matrix;
+
+import com.xiledsystems.AlternateJavaBridgelib.components.Component;
+import com.xiledsystems.AlternateJavaBridgelib.components.HandlesEventDispatching;
 
 /**
  * Base object for any visible object to be placed in an OpenGLCanvas.
@@ -78,9 +79,9 @@ public abstract class GLObject implements onSurfaceChangedListener,
 	 * @param color
 	 */
 	public void Color(int color) {
-		rValue = android.graphics.Color.red(color) / 255f;
-		gValue = android.graphics.Color.green(color) / 255f;
-		bValue = android.graphics.Color.blue(color) / 255f;
+		rValue = Color.red(color) / 255f;
+		gValue = Color.green(color) / 255f;
+		bValue = Color.blue(color) / 255f;
 		buildShaderCode();
 		colorChanged = true;		
 		glCanvas.requestRender();
@@ -232,7 +233,7 @@ public abstract class GLObject implements onSurfaceChangedListener,
 	
 	protected abstract void glDraw();
 	
-	//public abstract void onUpdate();	
+	//protected abstract void onUpdate(long now);	
 
 	
 	// Overriden methods
@@ -266,6 +267,7 @@ public abstract class GLObject implements onSurfaceChangedListener,
 		// Prepare the shape data
 		GLES20.glVertexAttribPointer(maPositionHandle, 3, GLES20.GL_FLOAT, false, 12, vertexBuffer);
 		GLES20.glEnableVertexAttribArray(maPositionHandle);
+		GLRenderer.checkGLError("EnableVertexAttribArray");
 	}
 	
 	protected void onDrawTransformations(float[] mvMatrix, float[] projMatrix, float[] mMMatrix, float[] mMVPMatrix) {
@@ -282,6 +284,7 @@ public abstract class GLObject implements onSurfaceChangedListener,
 			// Apply a ModelView Projection transformation
 	               
 			GLES20.glUniformMatrix4fv(muMVPMatrixHandle, 1, false, mMVPMatrix, 0);
+			GLRenderer.checkGLError("UniformMatrix4v");
 	        
 			// The extending class only needs to call the actual GL draw function 
 			// eg: GLES20.glDrawArrays, or GLES20.glDrawElements
@@ -305,9 +308,11 @@ public abstract class GLObject implements onSurfaceChangedListener,
         mProgram = GLUtil.createAndLinkProgram(vertexShader, fragmentShader, new String[] { "uMVPMatrix", "vPosition" }, TAG);
                 
         muMVPMatrixHandle = GLES20.glGetUniformLocation(mProgram, "uMVPMatrix");
+        GLRenderer.checkGLError("GetUniformLocation: uMVPMatrix");
         
         // get handle to the vertex shader's vPosition member
         maPositionHandle = GLES20.glGetAttribLocation(mProgram, "vPosition");
+        GLRenderer.checkGLError("UniformMatrix4v");
         
         initialized = true;
 	}
@@ -320,7 +325,7 @@ public abstract class GLObject implements onSurfaceChangedListener,
 	
 	@Override
 	public HandlesEventDispatching getDispatchDelegate() {		
-		return glCanvas.canvas.$form();
+		return glCanvas.canvas.getDispatchDelegate();
 	}
 
 }

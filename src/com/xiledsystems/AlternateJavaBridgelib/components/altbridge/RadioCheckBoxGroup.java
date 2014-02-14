@@ -7,24 +7,23 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.RadioGroup.OnCheckedChangeListener;
 
+
 public class RadioCheckBoxGroup extends AndroidViewComponent implements OnCheckedChangeListener {
 
 	private RadioGroup view;
-	
+
 	public RadioCheckBoxGroup(ComponentContainer container) {
 		super(container);
 		view = new RadioGroup(container.$context());
-		view.setOnCheckedChangeListener(this);		
+		view.setOnCheckedChangeListener(this);
 	}
-	
+
 	public RadioCheckBoxGroup(ComponentContainer container, int resourceId) {
-		super(container, resourceId);		
-		view = null;
-		RadioGroup g = (RadioGroup) container.$context().findViewById(resourceId);
-		g.setOnCheckedChangeListener(this);
-	}	
-	
-	
+		super(container, resourceId);
+		view = (RadioGroup) container.$context().findViewById(resourceId);
+		view.setOnCheckedChangeListener(this);
+	}
+
 	/**
 	 * 
 	 * This method is called when a radio checkbox is changed in the group.
@@ -33,11 +32,11 @@ public class RadioCheckBoxGroup extends AndroidViewComponent implements OnChecke
 	public void Changed(int id) {
 		EventDispatcher.dispatchEvent(this, "Changed", id);
 	}
-	
+
 	/**
 	 * 
-	 *  Resets the group so that none are checked.
-	 *  
+	 * Resets the group so that none are checked.
+	 * 
 	 */
 	public void clearAll() {
 		if (view != null) {
@@ -46,71 +45,39 @@ public class RadioCheckBoxGroup extends AndroidViewComponent implements OnChecke
 			RadioGroup g = (RadioGroup) container.$context().findViewById(resourceId);
 			g.clearCheck();
 		}
-		
 	}
-	
+
 	/**
 	 * 
-	 * @return True if none of the radio checkbox's in this group
-	 * are checked.
+	 * @return True if none of the radio checkbox's in this group are checked.
 	 */
 	public boolean isClear() {
 		int x;
-		if (view != null) {
-			x = view.getChildCount();
-		} else {
-			RadioGroup g = (RadioGroup) container.$context().findViewById(resourceId);
-			x = g.getChildCount();
-		}
-		RadioGroup v;
-		if (view != null) {
-			v = view;
-		} else {
-			RadioGroup g = (RadioGroup) container.$context().findViewById(resourceId);
-			v = g;
-		}
+		x = view.getChildCount();
 		for (int i = 0; i < x; i++) {
-			if (((RadioButton)v.getChildAt(i)).isChecked()) {
+			if (((RadioButton) view.getChildAt(i)).isChecked()) {
 				return false;
 			}
 		}
 		return true;
 	}
-	
+
 	/**
 	 * This method returns the id of the selected RadioCheckBox in the group
 	 * 
 	 * @return
 	 */
 	public int SelectedRadio() {
-		if (view != null) {
-			return view.getCheckedRadioButtonId();
-		} else {
-			RadioGroup g = (RadioGroup) container.$context().findViewById(resourceId);
-			return g.getCheckedRadioButtonId();
-		}
-	}
-	
-	@Override
-	public View getView() {
-		if (view != null) {
-			return view;
-		} else {
-			RadioGroup g = (RadioGroup) container.$context().findViewById(resourceId);
-			return g;
-		}
-		
+		return view.getCheckedRadioButtonId();
 	}
 
 	@Override
-	public void postAnimEvent() {
-		EventDispatcher.dispatchEvent(this, "AnimationMiddle");
+	public View getView() {
+		return view;
 	}
 
 	@Override
 	public void onCheckedChanged(RadioGroup group, int checkedId) {
 		Changed(checkedId);
 	}
-
-	
 }

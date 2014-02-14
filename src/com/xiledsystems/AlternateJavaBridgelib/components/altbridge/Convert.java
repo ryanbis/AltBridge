@@ -1,6 +1,7 @@
 package com.xiledsystems.AlternateJavaBridgelib.components.altbridge;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 
 public final class Convert {
 
@@ -8,31 +9,81 @@ public final class Convert {
 	}
 	
 	/**
-	 * Converts an object to an int
+	 * Converts an object to an int. If the object cannot
+	 * be cast to an integer, 0 will be returned.
+	 * 
 	 * @param object
 	 * @return
 	 */
-	public static int Int(Object object) {
-		return Integer.parseInt(object.toString());
+	public static int Int(Object object) {	  
+	  return Int(object, 0);		
 	}
 	
 	/**
-	 * Converts a String to an int
+     * Converts an object to an int. If the object cannot
+     * be cast to an integer, the defvalue will be returned.
+     * 
+     * @param object
+     * @param defValue - The default value to return if the object being converted cannot be converted.
+     * @return
+     */
+    public static int Int(Object object, int defValue) {      
+      return Int(object.toString(), defValue);     
+    }
+	
+	/**
+	 * Converts a String to an int. If the string cannot
+     * be cast to an integer, 0 will be returned.
+     * 
 	 * @param string
 	 * @return
 	 */
 	public static int Int(String string) {
-		return Integer.parseInt(string);
+		return Int(string, 0);
 	}
 	
 	/**
-	 * Converts an object to a String. Really, there's no need
-	 * to use this. Just use object.toString()
+     * Converts an object to an int. If the object cannot
+     * be cast to an integer, the defValue will be returned.
+     * 
+     * @param object
+     * @param defValue - The default value to return if the object being converted cannot be converted.
+     * @return
+     */
+	public static int Int(String string, int defValue) {
+	  int i = defValue;
+	  try {
+	    i = Integer.parseInt(string);
+	  } catch (NumberFormatException e) {	    
+	  }
+	  return i;
+	}
+	
+	/**
+	 * Converts an object to a String. This only checks
+	 * for Byte, Short, Integer, Long, Float, and Double.
+	 * If the object is none of those, object.toString() is
+	 * what is returned.
+	 * 
 	 * @param object
 	 * @return
 	 */
 	public static String string(Object object) {
-		return object.toString();
+	  if (object instanceof Byte) {
+	    return Byte.toString((Byte) object);
+	  } else if (object instanceof Short) {
+        return Short.toString((Short) object);
+      } else if (object instanceof Integer) {
+	    return Integer.toString((Integer) object);
+	  } else if (object instanceof Long) {
+	    return Long.toString((Long) object);
+	  } else if (object instanceof Float) {
+        return Float.toString((Float) object);
+      } else if (object instanceof Double) {
+	    return Double.toString((Double) object);
+	  } else {
+	    return object.toString();
+	  }
 	}
 	
 	/**
@@ -41,7 +92,11 @@ public final class Convert {
 	 * @return
 	 */
 	public static long Long(Object object) {
-		return Long.parseLong(object.toString());
+		return Long(object, 0);
+	}
+	
+	public static long Long(Object object, long defValue) {	 
+	  return Long(object.toString(), defValue);
 	}
 	
 	/**
@@ -50,8 +105,25 @@ public final class Convert {
 	 * @return
 	 */
 	public static long Long(String string) {
-		return Long.parseLong(string);
+		return Long(string, 0);
 	}
+		
+	/**
+     * Converts a string to a long. If the object cannot
+     * be cast to a long, the defValue will be returned.
+     * 
+     * @param object
+     * @param defValue - The default value to return if the object being converted cannot be converted.
+     * @return
+     */
+    public static long Long(String string, long defValue) {
+      long i = defValue;
+      try {
+        i = Long.parseLong(string);
+      } catch (NumberFormatException e) {       
+      }
+      return i;
+    }
 	
 	/**
 	 * Converts an object to a double
@@ -59,7 +131,11 @@ public final class Convert {
 	 * @return
 	 */
 	public static double Double(Object object) {
-		return Double.parseDouble(object.toString());
+		return Double(object, 0);
+	}
+	
+	public static double Double(Object object, double defValue) {	  
+	  return Double(object.toString(), defValue);
 	}
 	
 	/**
@@ -68,7 +144,16 @@ public final class Convert {
 	 * @return
 	 */
 	public static double Double(String string) {
-		return Double.parseDouble(string);
+		return Double(string, 0);
+	}
+	
+	public static double Double(String string, double defValue) {
+	  double d = defValue;
+      try {
+        d = Double.parseDouble(string);
+      } catch (NumberFormatException e) {       
+      }
+      return d;
 	}
 	
 	/**
@@ -88,14 +173,18 @@ public final class Convert {
 	public static boolean Boolean(String string) {
 		return Boolean.parseBoolean(string);
 	}
-	
+		
 	/**
 	 * Converts an object to a float
 	 * @param object
 	 * @return
 	 */
 	public static float Float(Object object) {
-		return Float.parseFloat(object.toString());
+		return Float(object, 0f);
+	}
+	
+	public static float Float(Object object, float defValue) {
+	  return Float(object.toString(), defValue);
 	}
 	
 	/**
@@ -104,17 +193,62 @@ public final class Convert {
 	 * @return
 	 */
 	public static float Float(String string) {
-		return Float.parseFloat(string);
+		return Float(string, 0f);
 	}
 	
-	/**
-	 * Untested. I don't think it works. Just cast it.
-	 * @param object
-	 * @return
-	 */
-	public static ArrayList<?> Arraylist(Object object) {
-		return (ArrayList<?>) object; 
+	public static float Float(String string, float defValue) {
+	  float f = defValue;
+	  try {
+	    f = Float.parseFloat(string);
+	  } catch (NumberFormatException e) {	    
+	  }
+	  return f;
 	}
+		
+	public static ArrayList<Boolean> BooleanArrayList(ArrayList<String> list) {
+	  ArrayList<Boolean> nlist = new ArrayList<Boolean>();
+	  int size = list.size();
+	  for (int i = 0; i < size; i++) {
+	    nlist.add(Boolean.valueOf(list.get(i)));
+	  }
+	  return nlist;
+	}
+	
+	public static ArrayList<Integer> IntegerArrayList(ArrayList<String> list) {
+      ArrayList<Integer> nlist = new ArrayList<Integer>();
+      int size = list.size();
+      for (int i = 0; i < size; i++) {
+        nlist.add(Integer.valueOf(list.get(i)));
+      }
+      return nlist;
+    }
+	
+	public static ArrayList<Short> ShortArrayList(ArrayList<String> list) {
+      ArrayList<Short> nlist = new ArrayList<Short>();
+      int size = list.size();
+      for (int i = 0; i < size; i++) {
+        nlist.add(Short.valueOf(list.get(i)));
+      }
+      return nlist;
+    }
+	
+	public static ArrayList<Long> LongArrayList(ArrayList<String> list) {
+      ArrayList<Long> nlist = new ArrayList<Long>();
+      int size = list.size();
+      for (int i = 0; i < size; i++) {
+        nlist.add(Long.valueOf(list.get(i)));
+      }
+      return nlist;
+    }
+	
+	public static ArrayList<Float> FloatArrayList(ArrayList<String> list) {
+      ArrayList<Float> nlist = new ArrayList<Float>();
+      int size = list.size();
+      for (int i = 0; i < size; i++) {
+        nlist.add(Float.valueOf(list.get(i)));
+      }
+      return nlist;
+    }
 	
 	/**
 	 * This will convert a number to a two digit
@@ -124,5 +258,36 @@ public final class Convert {
 	 */
 	public static String TwoDigits(Object object) {
 		return String.format("%01", object.toString());
+	}
+	
+	/**This will convert a full date in to milliseconds represented as a long
+	 * 
+	 * @param year
+	 * @param month
+	 * @param day
+	 * @param hour - set this and min to ZERO if you want the time to be midnight
+	 * @param min - Set this and hour to ZERO if you want the time to be midnight
+	 * @return
+	 */
+	public static long DateToMilli(int year, int month, int day, int hour, int min) {
+		Calendar targetDateCalendar = Calendar.getInstance();		
+        targetDateCalendar.set(Calendar.YEAR, year);
+        targetDateCalendar.set(Calendar.MONTH, month);
+        targetDateCalendar.set(Calendar.DAY_OF_MONTH, day);
+        targetDateCalendar.set(Calendar.HOUR_OF_DAY, hour);
+        targetDateCalendar.set(Calendar.MINUTE, min);
+        return targetDateCalendar.getTimeInMillis();
+	}
+	
+	/** Converts an amount of time in to milliseconds
+	 * 
+	 * @param days
+	 * @param hours
+	 * @param minutes
+	 * @param seconds
+	 * @return
+	 */
+	public long TimeToMilli(long days, long hours, long minutes, long seconds) {
+		return ((days * 86400000) + (hours * 3600000) + (minutes * 60000) + (seconds * 100) );
 	}
 }

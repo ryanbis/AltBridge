@@ -82,13 +82,13 @@ public final class BluetoothClient extends BluetoothConnectionBase {
     String functionName = "IsDevicePaired";
     Object bluetoothAdapter = BluetoothReflection.getBluetoothAdapter();
     if (bluetoothAdapter == null) {
-      container.$form().dispatchErrorOccurredEvent(this, functionName,
+      container.getRegistrar().dispatchErrorOccurredEvent(this, functionName,
           ErrorMessages.ERROR_BLUETOOTH_NOT_AVAILABLE);
       return false;
     }
 
     if (!BluetoothReflection.isBluetoothEnabled(bluetoothAdapter)) {
-    	container.$form().dispatchErrorOccurredEvent(this, functionName,
+    	container.getRegistrar().dispatchErrorOccurredEvent(this, functionName,
           ErrorMessages.ERROR_BLUETOOTH_NOT_ENABLED);
       return false;
     }
@@ -101,7 +101,7 @@ public final class BluetoothClient extends BluetoothConnectionBase {
     }
 
     if (!BluetoothReflection.checkBluetoothAddress(bluetoothAdapter, address)) {
-    	container.$form().dispatchErrorOccurredEvent(this, functionName,
+    	container.getRegistrar().dispatchErrorOccurredEvent(this, functionName,
           ErrorMessages.ERROR_BLUETOOTH_INVALID_ADDRESS);
       return false;
     }
@@ -199,13 +199,13 @@ public final class BluetoothClient extends BluetoothConnectionBase {
   private boolean connect(String functionName, String address, String uuidString) {
     Object bluetoothAdapter = BluetoothReflection.getBluetoothAdapter();
     if (bluetoothAdapter == null) {
-    	container.$form().dispatchErrorOccurredEvent(this, functionName,
+    	container.getRegistrar().dispatchErrorOccurredEvent(this, functionName,
           ErrorMessages.ERROR_BLUETOOTH_NOT_AVAILABLE);
       return false;
     }
 
     if (!BluetoothReflection.isBluetoothEnabled(bluetoothAdapter)) {
-    	container.$form().dispatchErrorOccurredEvent(this, functionName,
+    	container.getRegistrar().dispatchErrorOccurredEvent(this, functionName,
           ErrorMessages.ERROR_BLUETOOTH_NOT_ENABLED);
       return false;
     }
@@ -218,20 +218,20 @@ public final class BluetoothClient extends BluetoothConnectionBase {
     }
 
     if (!BluetoothReflection.checkBluetoothAddress(bluetoothAdapter, address)) {
-    	container.$form().dispatchErrorOccurredEvent(this, functionName,
+    	container.getRegistrar().dispatchErrorOccurredEvent(this, functionName,
           ErrorMessages.ERROR_BLUETOOTH_INVALID_ADDRESS);
       return false;
     }
 
     Object bluetoothDevice = BluetoothReflection.getRemoteDevice(bluetoothAdapter, address);
     if (!BluetoothReflection.isBonded(bluetoothDevice)) {
-    	container.$form().dispatchErrorOccurredEvent(this, functionName,
+    	container.getRegistrar().dispatchErrorOccurredEvent(this, functionName,
           ErrorMessages.ERROR_BLUETOOTH_NOT_PAIRED_DEVICE);
       return false;
     }
 
     if (!isDeviceClassAcceptable(bluetoothDevice)) {
-    	container.$form().dispatchErrorOccurredEvent(this, functionName,
+    	container.getRegistrar().dispatchErrorOccurredEvent(this, functionName,
           ErrorMessages.ERROR_BLUETOOTH_NOT_REQUIRED_CLASS_OF_DEVICE);
       return false;
     }
@@ -240,7 +240,7 @@ public final class BluetoothClient extends BluetoothConnectionBase {
     try {
       uuid = UUID.fromString(uuidString);
     } catch (IllegalArgumentException e) {
-    	container.$form().dispatchErrorOccurredEvent(this, functionName,
+    	container.getRegistrar().dispatchErrorOccurredEvent(this, functionName,
           ErrorMessages.ERROR_BLUETOOTH_INVALID_UUID, uuidString);
       return false;
     }
@@ -252,7 +252,7 @@ public final class BluetoothClient extends BluetoothConnectionBase {
       return true;
     } catch (IOException e) {
       Disconnect();
-      container.$form().dispatchErrorOccurredEvent(this, functionName,
+      container.getRegistrar().dispatchErrorOccurredEvent(this, functionName,
           ErrorMessages.ERROR_BLUETOOTH_UNABLE_TO_CONNECT);
       return false;
     }

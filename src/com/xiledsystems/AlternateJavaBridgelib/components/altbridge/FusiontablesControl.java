@@ -61,7 +61,7 @@ public class FusiontablesControl extends AndroidNonvisibleComponent implements C
     if (requestHelper != null) {
       new QueryProcessor().execute(query);
     } else {
-    	container.$form().dispatchErrorOccurredEvent(this, "DoQuery",
+    	container.getRegistrar().dispatchErrorOccurredEvent(this, "DoQuery",
           ErrorMessages.ERROR_FUNCTIONALITY_NOT_SUPPORTED_FUSIONTABLES_CONTROL);
     }
   }

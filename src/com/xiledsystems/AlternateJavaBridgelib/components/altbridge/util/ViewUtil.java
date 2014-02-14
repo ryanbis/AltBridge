@@ -2,7 +2,9 @@ package com.xiledsystems.AlternateJavaBridgelib.components.altbridge.util;
 
 import com.xiledsystems.AlternateJavaBridgelib.components.Component;
 
+import android.annotation.TargetApi;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.util.Log;
 import android.view.View;
 import android.widget.FrameLayout;
@@ -48,7 +50,7 @@ public final class ViewUtil {
     		relativeLayoutParams.width = RelativeLayout.LayoutParams.WRAP_CONTENT;
     		break;
     	case Component.LENGTH_FILL_PARENT:
-    		relativeLayoutParams.width = RelativeLayout.LayoutParams.FILL_PARENT;
+    		relativeLayoutParams.width = RelativeLayout.LayoutParams.MATCH_PARENT;
     		break;
     	default:
     		relativeLayoutParams.width = width;
@@ -62,7 +64,7 @@ public final class ViewUtil {
     		frameLayoutParams.width = FrameLayout.LayoutParams.WRAP_CONTENT;
     		break;
     	case Component.LENGTH_FILL_PARENT:
-    		frameLayoutParams.width = FrameLayout.LayoutParams.FILL_PARENT;
+    		frameLayoutParams.width = FrameLayout.LayoutParams.MATCH_PARENT;
     		break;
     	default:
     		frameLayoutParams.width = width;
@@ -85,7 +87,7 @@ public final class ViewUtil {
           linearLayoutParams.height = LinearLayout.LayoutParams.WRAP_CONTENT;
           break;
         case Component.LENGTH_FILL_PARENT:
-          linearLayoutParams.height = LinearLayout.LayoutParams.FILL_PARENT;
+          linearLayoutParams.height = LinearLayout.LayoutParams.MATCH_PARENT;
           break;
         default:
           linearLayoutParams.height = height;
@@ -99,7 +101,7 @@ public final class ViewUtil {
     		relativeLayoutParams.height = RelativeLayout.LayoutParams.WRAP_CONTENT;
     		break;
     	case Component.LENGTH_FILL_PARENT:
-    		relativeLayoutParams.height = RelativeLayout.LayoutParams.FILL_PARENT;
+    		relativeLayoutParams.height = RelativeLayout.LayoutParams.MATCH_PARENT;
     		break;
     	default:
     		relativeLayoutParams.height = height;
@@ -113,7 +115,7 @@ public final class ViewUtil {
     		frameLayoutParams.height = FrameLayout.LayoutParams.WRAP_CONTENT;
     		break;
     	case Component.LENGTH_FILL_PARENT:
-    		frameLayoutParams.height = FrameLayout.LayoutParams.FILL_PARENT;
+    		frameLayoutParams.height = FrameLayout.LayoutParams.MATCH_PARENT;
     		break;
     	default:
     		frameLayoutParams.height = height;
@@ -137,7 +139,7 @@ public final class ViewUtil {
           linearLayoutParams.width = LinearLayout.LayoutParams.WRAP_CONTENT;
           break;
         case Component.LENGTH_FILL_PARENT:
-          linearLayoutParams.width = LinearLayout.LayoutParams.FILL_PARENT;
+          linearLayoutParams.width = LinearLayout.LayoutParams.MATCH_PARENT;
           break;
         default:
           linearLayoutParams.width = width;
@@ -151,7 +153,7 @@ public final class ViewUtil {
     		relativeLayoutParams.width = RelativeLayout.LayoutParams.WRAP_CONTENT;
     		break;
     	case Component.LENGTH_FILL_PARENT:
-    		relativeLayoutParams.width = RelativeLayout.LayoutParams.FILL_PARENT;
+    		relativeLayoutParams.width = RelativeLayout.LayoutParams.MATCH_PARENT;
     		break;
     	default:
     		relativeLayoutParams.width = width;
@@ -165,7 +167,7 @@ public final class ViewUtil {
     		frameLayoutParams.width = FrameLayout.LayoutParams.WRAP_CONTENT;
     		break;
     	case Component.LENGTH_FILL_PARENT:
-    		frameLayoutParams.width = FrameLayout.LayoutParams.FILL_PARENT;
+    		frameLayoutParams.width = FrameLayout.LayoutParams.MATCH_PARENT;
     		break;
     	default:
     		frameLayoutParams.width = width;
@@ -205,7 +207,7 @@ public final class ViewUtil {
     		relativeLayoutParams.height = RelativeLayout.LayoutParams.WRAP_CONTENT;
     		break;
     	case Component.LENGTH_FILL_PARENT:
-    		relativeLayoutParams.height = RelativeLayout.LayoutParams.FILL_PARENT;
+    		relativeLayoutParams.height = RelativeLayout.LayoutParams.MATCH_PARENT;
     		break;
     	default:
     		relativeLayoutParams.height = height;
@@ -219,7 +221,7 @@ public final class ViewUtil {
     		frameLayoutParams.height = FrameLayout.LayoutParams.WRAP_CONTENT;
     		break;
     	case Component.LENGTH_FILL_PARENT:
-    		frameLayoutParams.height = FrameLayout.LayoutParams.FILL_PARENT;
+    		frameLayoutParams.height = FrameLayout.LayoutParams.MATCH_PARENT;
     		break;
     	default:
     		frameLayoutParams.height = height;
@@ -240,7 +242,7 @@ public final class ViewUtil {
           tableLayoutParams.width = TableRow.LayoutParams.WRAP_CONTENT;
           break;
         case Component.LENGTH_FILL_PARENT:
-          tableLayoutParams.width = TableRow.LayoutParams.FILL_PARENT;
+          tableLayoutParams.width = TableRow.LayoutParams.MATCH_PARENT;
           break;
         default:
           tableLayoutParams.width = width;
@@ -261,7 +263,7 @@ public final class ViewUtil {
           tableLayoutParams.height = TableRow.LayoutParams.WRAP_CONTENT;
           break;
         case Component.LENGTH_FILL_PARENT:
-          tableLayoutParams.height = TableRow.LayoutParams.FILL_PARENT;
+          tableLayoutParams.height = TableRow.LayoutParams.MATCH_PARENT;
           break;
         default:
           tableLayoutParams.height = height;
@@ -277,8 +279,7 @@ public final class ViewUtil {
    * Sets the background image for a view.
    */
   public static void setBackgroundImage(View view, Drawable drawable) {
-    view.setBackgroundDrawable(drawable);
-    view.requestLayout();
+    setBackgroundDrawable(view, drawable);
   }
 
   /**
@@ -291,9 +292,26 @@ public final class ViewUtil {
     }
     view.requestLayout();
   }
+  
+  /**
+   * Sets the image for an ImageView, do NOT preserve aspect ratio
+   */
+  public static void setImageNoBounds(ImageView view, Drawable drawable) {
+    view.setImageDrawable(drawable);
+    if (drawable != null) {
+      view.setAdjustViewBounds(false);
+    }
+    view.requestLayout();
+  }
 
+  @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
+  @SuppressWarnings("deprecation")
   public static void setBackgroundDrawable(View view, Drawable drawable) {
-    view.setBackgroundDrawable(drawable);
+    if (SdkLevel.getLevel() >= Build.VERSION_CODES.JELLY_BEAN) {
+      view.setBackground(drawable);
+    } else {
+      view.setBackgroundDrawable(drawable);
+    }
     view.invalidate();
   }
 }

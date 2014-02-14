@@ -1,11 +1,8 @@
 package com.xiledsystems.AlternateJavaBridgelib.components.altbridge;
 
-import com.xiledsystems.AlternateJavaBridgelib.components.events.EventDispatcher;
-
 import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
-
 import android.provider.MediaStore;
 import android.util.Log;
 
@@ -41,7 +38,7 @@ public class ImagePicker extends Picker implements ActivityResultListener {
 
   @Override
   protected Intent getIntent() {
-    return new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.INTERNAL_CONTENT_URI);
+    return new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.INTERNAL_CONTENT_URI).setType("image/*");
   }
 
   /**

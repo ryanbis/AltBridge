@@ -14,6 +14,7 @@ import android.hardware.SensorManager;
 import com.xiledsystems.AlternateJavaBridgelib.components.SensorComponent;
 import com.xiledsystems.AlternateJavaBridgelib.components.altbridge.util.AccSensorListener;
 import com.xiledsystems.AlternateJavaBridgelib.components.events.EventDispatcher;
+import com.xiledsystems.AlternateJavaBridgelib.components.events.Events;
 
 /**
  * Physical world component that can detect shaking and measure
@@ -70,8 +71,8 @@ public class AccelerometerSensor extends AndroidNonvisibleComponent
    */
   public AccelerometerSensor(ComponentContainer container) {
     super(container);
-    container.$form().registerForOnResume(this);
-    container.$form().registerForOnStop(this);
+    container.getRegistrar().registerForOnResume(this);
+    container.getRegistrar().registerForOnStop(this);
 
     enabled = true;
     sensorManager = (SensorManager) container.$context().getSystemService(Context.SENSOR_SERVICE);
@@ -108,7 +109,11 @@ public class AccelerometerSensor extends AndroidNonvisibleComponent
     }
  
     if (listener == null) {
-    	EventDispatcher.dispatchEvent(this, "AccelerationChanged", xAccel, yAccel, zAccel);
+    	if (eventListener != null) {
+    		eventListener.eventDispatched(Events.ACCELERATION_CHANGED, xAccel, yAccel, zAccel);
+    	} else {
+    		EventDispatcher.dispatchEvent(this, "AccelerationChanged", xAccel, yAccel, zAccel);
+    	}
     } else {
     	listener.sensorReceived(xAccel, yAccel, zAccel);
     }
@@ -119,7 +124,11 @@ public class AccelerometerSensor extends AndroidNonvisibleComponent
    */
   
   public void Shaking() {
-    EventDispatcher.dispatchEvent(this, "Shaking");
+	  if (eventListener != null) {
+		  eventListener.eventDispatched(Events.SHAKING);
+	  } else {
+		  EventDispatcher.dispatchEvent(this, "Shaking");
+	  }
   }
   
   /**

@@ -1,6 +1,9 @@
 package com.xiledsystems.AlternateJavaBridgelib.components.altbridge;
 
 
+import com.xiledsystems.AlternateJavaBridgelib.components.HandlesEventDispatching;
+import com.xiledsystems.AlternateJavaBridgelib.components.altbridge.util.Registrar;
+
 import android.app.Activity;
 
 /**
@@ -16,13 +19,10 @@ public interface ComponentContainer {
    * @return  activity context
    */
   Activity $context();
-
-  /**
-   * Returns the form that ultimately contains this container.
-   *
-   * @return  form
-   */
-  Form $form();
+   
+  HandlesEventDispatching getDelegate();
+  
+  Registrar getRegistrar();
 
   /**
    * Adds a component to a container.
@@ -34,6 +34,10 @@ public interface ComponentContainer {
    * @param component  component associated with view
    */
   void $add(AndroidViewComponent component);
+  
+  void $remove(AndroidViewComponent component);
+  
+  void removeAllViews();
     
   void setChildWidth(AndroidViewComponent component, int width);
 

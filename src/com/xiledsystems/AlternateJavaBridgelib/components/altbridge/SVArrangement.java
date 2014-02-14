@@ -1,6 +1,8 @@
 package com.xiledsystems.AlternateJavaBridgelib.components.altbridge;
 
 import com.xiledsystems.AlternateJavaBridgelib.components.Component;
+import com.xiledsystems.AlternateJavaBridgelib.components.HandlesEventDispatching;
+import com.xiledsystems.AlternateJavaBridgelib.components.altbridge.util.Registrar;
 import com.xiledsystems.AlternateJavaBridgelib.components.altbridge.util.ViewUtil;
 import com.xiledsystems.AlternateJavaBridgelib.components.common.ComponentConstants;
 import com.xiledsystems.AlternateJavaBridgelib.components.events.EventDispatcher;
@@ -48,7 +50,7 @@ public class SVArrangement extends AndroidViewComponent implements Component, Co
 
 		    this.orientation = orientation;
 		    //viewLayout = new ScrollView(context, orientation);
-		    viewLayout = new ScrollView(container.$form(), orientation, ComponentConstants.EMPTY_HV_ARRANGEMENT_WIDTH,
+		    viewLayout = new ScrollView(container.$context(), orientation, ComponentConstants.EMPTY_HV_ARRANGEMENT_WIDTH,
 		    		ComponentConstants.EMPTY_HV_ARRANGEMENT_HEIGHT, resourceId);
 		    
 		    container.$add(this);
@@ -91,11 +93,6 @@ public class SVArrangement extends AndroidViewComponent implements Component, Co
 	  }
 
 	  @Override
-	  public Form $form() {
-	    return container.$form();
-	  }
-
-	  @Override
 	  public void $add(AndroidViewComponent component) {
 	    viewLayout.add(component);
 	    
@@ -130,8 +127,8 @@ public class SVArrangement extends AndroidViewComponent implements Component, Co
 		public void onInitialize() {
 			
 			if (autoResize) {
-				Width((int) (container.$form().scrnWidth * widthMultiplier));
-				Height((int) (container.$form().scrnHeight * heightMultiplier));
+				Width((int) (container.getRegistrar().getAvailWidth() * widthMultiplier));
+				Height((int) (container.getRegistrar().getAvailHeight() * heightMultiplier));
 			}
 			
 		}
@@ -148,5 +145,25 @@ public class SVArrangement extends AndroidViewComponent implements Component, Co
 			EventDispatcher.dispatchEvent(this, "AnimationMiddle");
 			
 		}
+
+    @Override
+    public HandlesEventDispatching getDelegate() {
+      return container.getDelegate();
+    }
+    
+    @Override
+    public Registrar getRegistrar() {
+      return container.getRegistrar();
+    }
+
+    @Override
+    public void $remove(AndroidViewComponent component) {
+      viewLayout.remove(component);
+    }
+
+	@Override
+	public void removeAllViews() {
+		viewLayout.getLayoutManager().removeAllViews();
+	}
 		
 }

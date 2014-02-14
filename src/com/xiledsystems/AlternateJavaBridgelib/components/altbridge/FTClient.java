@@ -197,7 +197,7 @@ public class FTClient extends AndroidNonvisibleComponent {
 	 
 	 
 	 private void sendLoginAck(final FTClient client, final boolean result) {		 
-		 container.$form().post(new Runnable() {			
+		 container.getRegistrar().post(new Runnable() {			
 			@Override
 			public void run() {
 				EventDispatcher.dispatchEvent(client, "LoginResponse", result);				
@@ -207,7 +207,7 @@ public class FTClient extends AndroidNonvisibleComponent {
 
 
 	private void sendResponse(final FTClient client, final String result) {		
-		container.$form().post(new Runnable() {			
+		container.getRegistrar().post(new Runnable() {			
 			@Override
 			public void run() {
 				EventDispatcher.dispatchEvent(client, "Response", result);

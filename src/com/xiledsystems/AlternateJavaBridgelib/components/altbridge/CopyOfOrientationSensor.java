@@ -56,7 +56,7 @@ public class CopyOfOrientationSensor extends AndroidNonvisibleComponent
    * @param container  ignored (because this is a non-visible component)
    */
   public CopyOfOrientationSensor(ComponentContainer container) {
-    super(container.$form());
+    super(container);
     sensorManager =
       (SensorManager) container.$context().getSystemService(Context.SENSOR_SERVICE);
     orientationSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION);
@@ -66,7 +66,7 @@ public class CopyOfOrientationSensor extends AndroidNonvisibleComponent
     //sensorManager.registerListener(this, accelSensor, SensorManager.SENSOR_DELAY_GAME);
     //sensorManager.registerListener(this, magneticSensor, SensorManager.SENSOR_DELAY_GAME);
     enabled = true;
-    container.$form().registerForOnResume(this);
+    container.getRegistrar().registerForOnResume(this);
   }
 
   // Events

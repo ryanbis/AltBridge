@@ -1,16 +1,7 @@
 package com.xiledsystems.AlternateJavaBridgelib.components.altbridge.util;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.OutputStream;
-import java.io.Serializable;
-import java.util.Map;
-
 import android.os.Parcel;
 import android.os.Parcelable;
-
-import com.xiledsystems.AlternateJavaBridgelib.components.altbridge.collect.Maps;
 
 
 public class CustomListItem implements Parcelable {
@@ -18,6 +9,7 @@ public class CustomListItem implements Parcelable {
 	private String text1;
 	private String text2;
 	private int imageView;
+	private String imageFile;
 	
 	/**
 	 * Use this class to fill in the values of your custom
@@ -82,6 +74,20 @@ public class CustomListItem implements Parcelable {
 	}
 	
 	/**
+	 * Set the bitmap to use for the ImageView's source.
+	 * This should be an absolute path.
+	 * 
+	 * @param bitmap - The bitmap to set as the imageview's source
+	 */
+	public void ImageFile(String path) {
+	  imageFile = path;
+	}
+	
+	public String ImageFile() {
+	  return imageFile;
+	}
+	
+	/**
 	 * 
 	 * @return the resource id of the drawable used in the imageview
 	 */
@@ -103,12 +109,19 @@ public class CustomListItem implements Parcelable {
 		out.writeString(text1);
 		out.writeString(text2);
 		out.writeInt(imageView);
+		out.writeString(imageFile);
 	}
 	
 	private void readFromParcel(Parcel in) {
 		text1 = in.readString();
 		text2 = in.readString();
 		imageView = in.readInt();
+		try {
+		  imageFile = in.readString();
+		} catch (Exception e) {
+		  // old file, just ignore, set to ""
+		  imageFile = "";
+		}
 	}
 	
 	public static final Parcelable.Creator CREATOR = new Parcelable.Creator() {

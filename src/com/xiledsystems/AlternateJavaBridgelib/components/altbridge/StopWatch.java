@@ -5,6 +5,8 @@ import java.util.IllegalFormatException;
 import java.util.Locale;
 
 
+import android.annotation.SuppressLint;
+import android.hardware.Camera.Size;
 import android.os.Handler;
 import android.os.Message;
 import android.os.SystemClock;
@@ -23,11 +25,19 @@ public class StopWatch extends Label implements OnDestroyListener {
 	private Object[] mFormatterArgs = new Object[1];
 	private String mFormat;
 	private boolean mLogged;
-	private boolean mRunning;
+	private boolean mRunning;			//when true, stopwatch is running
 	private String displayText;	
-    private boolean mStarted;	
+    private boolean mStarted;			//Set to true when stopwatch starts, and false when stopped, or paused.
 	private long initialTime;
 	private long currentTime;
+	
+	private float displayFontSize;
+	private long stopWatchTime;
+	private boolean timerStarted;
+	private long startTime;
+	private long stopTime;
+	private long elapsedTime;
+	private long timerOffSetValue;
 		
 	
 	/**
@@ -37,16 +47,17 @@ public class StopWatch extends Label implements OnDestroyListener {
 	 */
 	public StopWatch(ComponentContainer container) {
 		super(container);
-						
-		container.$add(this);
 		
-		container.$form().registerForOnDestroy(this);
+		container.getRegistrar().registerForOnDestroy(this);
 		
-		//timer = new ThreadTimer(container, action);
-		//timer.Interval(1000);
-		//timer.Enabled(false);
-		setTime(SystemClock.elapsedRealtime());
-				
+		setTime(SystemClock.elapsedRealtime());	
+		
+		timerStarted = false;	//initialize the timerStarted boolean to false
+		startTime = SystemClock.elapsedRealtime();
+		elapsedTime = 0;
+		timerOffSetValue = 0;
+		
+	//	displayFontSize = -1;	//Inititalize the dispalyFontSize float
 	}
 	
 	/**
@@ -58,12 +69,16 @@ public class StopWatch extends Label implements OnDestroyListener {
 	public StopWatch(ComponentContainer container, int resourceId) {
 		super(container, resourceId);
 								
-		container.$form().registerForOnDestroy(this);
-						
-		//timer = new ThreadTimer(container, action);
-		//timer.Interval(1000);
-		//timer.Enabled(false);
+		container.getRegistrar().registerForOnDestroy(this);
+		
 		setTime(SystemClock.elapsedRealtime());
+		
+		timerStarted = false;	//initialize the timerStarted boolean to false
+		startTime = SystemClock.elapsedRealtime();
+		elapsedTime = 0;
+		timerOffSetValue = 0;
+
+	//	displayFontSize = -1;	//Inititalize the dispalyFontSize float
 	}
 	
 	/**
@@ -74,25 +89,29 @@ public class StopWatch extends Label implements OnDestroyListener {
 	 * 
 	 */
 	public void start() {
-		//if (!timer.Enabled()) {
-		//	timer.Enabled(true);
-		//}
 		mStarted = true;
+		startTime = SystemClock.elapsedRealtime();
 		updateRunning();
+		
+		if (timerStarted == false)
+			setTime(SystemClock.elapsedRealtime());
+		
+		
 	}
 	
 	/**
 	 * Stop the stop watch
 	 */
 	public void stop() {
-		//if (timer.Enabled()) {
-		//	timer.Enabled(false);
-		//}
 		mStarted = false;
+		stopTime = SystemClock.elapsedRealtime();
+		
+		elapsedTime = elapsedTime + (stopTime - startTime);
 		updateRunning();
 	}
 	
-	/**
+	/**NOTE: RIGHT NOW THIS ALWAYS RESETS TO ZERO, THIS NEEDS TO BE FIXED TO REFLECT BELOW
+	 * 
 	 * Reset the stopwatch to the initial time. (What you set with
 	 * setTime(), or 0 if it wasn't set). This does NOT affect if the
 	 * stop watch is started or stopped. It just resets the time (and
@@ -100,13 +119,40 @@ public class StopWatch extends Label implements OnDestroyListener {
 	 * 
 	 */
 	public void reset() {
-		currentTime = initialTime = SystemClock.elapsedRealtime();
+		currentTime = initialTime = stopWatchTime = elapsedTime = startTime = stopTime = 0;
+		timerStarted = false;
 		updateText(currentTime);
+		
+	}
+	
+	/** This method simply forces an update of the StopWatch display
+	 *  This is helpful if you have adjusted the setTime or other items but have not started the watch
+	 * 
+	 */
+	public void updateDisplay() {
+		
+	}
+	
+	/**This sets the timerOffSetValue, in case you want to start the timer somewhere other than zero
+	 * 
+	 * @param offSetValue - value in millisecond to start with
+	 */
+	public void setTimerOffset(long offSetValue) {
+		timerOffSetValue = offSetValue;
+		setTime(SystemClock.elapsedRealtime());
+	}
+	
+	/** Getter method for timerOffSetValue
+	 * 
+	 * @return - long timerOffSetValue
+	 */
+	public long setTimerOffset() {
+		return timerOffSetValue;
 	}
 	
 	/**
 	 * Change the format of the display of the time.
-	 * Default is MM:SS, or H:MM:SS is none is set.
+	 * Default is MM:SS, or H:MM:SS if none is set.
 	 * 
 	 * @param format
 	 */
@@ -125,10 +171,37 @@ public class StopWatch extends Label implements OnDestroyListener {
 		return mFormat;
 	}
 	
+	/**Checks if the StopWatch is currently running
+	 * 
+	 * @return - true if the StopWatch is running, false if it is not running
+	 */
+	public boolean isRunning() {
+		return mRunning;
+	}
+	
+	/**This method sets the font size of the display text
+	 * 
+	 */
+	public void setFontSize(float size) {
+		displayFontSize = size;
+		//updateText(get)
+	}
+	
+	/** This method returns the font size of the display text
+	 * 
+	 */
+	public float getFontSize() {
+		return displayFontSize;
+	}
+	
 	private synchronized void updateText(long now) {
-		long seconds = now - initialTime;
-		currentTime = now - initialTime;				
-        seconds /= 1000;
+		now = now + timerOffSetValue;
+		
+//		long seconds = now - initialTime;
+		long seconds = now - startTime + elapsedTime;
+		currentTime = now - startTime + elapsedTime;				
+//		currentTime = now - initialTime;				
+  //      seconds /= 1000;
         String text = DateUtils.formatElapsedTime(mRecycle, seconds);
 
         if (mFormat != null) {
@@ -150,6 +223,15 @@ public class StopWatch extends Label implements OnDestroyListener {
             }
         }
         Text(text);
+        
+        if (timerStarted == false) {
+        	Text(DateUtils.formatElapsedTime(mRecycle, timerOffSetValue));
+        }
+        
+        //Check if a font size was set, if it was, use it
+        if (displayFontSize != 0)
+        	FontSize(displayFontSize);
+        
         displayText = text;
 	}
 	
@@ -204,6 +286,8 @@ public class StopWatch extends Label implements OnDestroyListener {
 		initialTime = time;
 		currentTime = time;		
 		updateText(time);
+		
+		timerStarted = true;
 	}
 	
 	private void updateRunning() {
@@ -217,16 +301,17 @@ public class StopWatch extends Label implements OnDestroyListener {
             }
             mRunning = running;
         }
-    }
-	
+    }	
 		
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
 		Visible(false);
 		updateRunning();
+//		mHandler = null;
 	}	
 	
+	@SuppressLint("HandlerLeak")
 	private Handler mHandler = new Handler() {
 		public void handleMessage(Message m) {
             if (mRunning) {

@@ -1,6 +1,7 @@
 package com.xiledsystems.AlternateJavaBridgelib.components;
 
 import com.xiledsystems.AlternateJavaBridgelib.components.common.ComponentConstants;
+import com.xiledsystems.AlternateJavaBridgelib.components.events.Events;
 
 /**
  * Interface for Simple components.
@@ -13,6 +14,9 @@ public abstract interface Component {
    * for this component.
    */
   public HandlesEventDispatching getDispatchDelegate();
+  
+  abstract Events.Event getEventListener();
+  
 
   /*
    * Text alignment constants.

@@ -105,7 +105,7 @@ public abstract class BluetoothConnectionBase extends AndroidNonvisibleComponent
   }
 
   protected void bluetoothError(String functionName, int errorNumber, Object... messageArgs) {
-    container.$form().dispatchErrorOccurredEvent(this, functionName, errorNumber, messageArgs);
+    container.getRegistrar().dispatchErrorOccurredEvent(this, functionName, errorNumber, messageArgs);
   }
 
   /**

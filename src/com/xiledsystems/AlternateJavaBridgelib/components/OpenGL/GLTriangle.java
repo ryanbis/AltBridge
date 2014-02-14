@@ -2,13 +2,14 @@ package com.xiledsystems.AlternateJavaBridgelib.components.OpenGL;
 
 import android.opengl.GLES20;
 
-import com.xiledsystems.AlternateJavaBridgelib.components.HandlesEventDispatching;
 import com.xiledsystems.AlternateJavaBridgelib.components.altbridge.Form;
 import com.xiledsystems.AlternateJavaBridgelib.components.altbridge.OnInitializeListener;
+import com.xiledsystems.AlternateJavaBridgelib.components.events.Events;
 
 
 public class GLTriangle extends GLMovingObject implements OnInitializeListener {
 	
+	private Events.Event eventListener;
 	
 	public GLTriangle(OpenGLCanvas canvas, float vertex1X, float vertex1Y, float vertex2X, float vertex2Y, float vertex3X, float vertex3Y) {
 		super(canvas);
@@ -29,25 +30,31 @@ public class GLTriangle extends GLMovingObject implements OnInitializeListener {
 		// Register this triangle for the GL Canvas's renderer's onSurfaceCreated method
 		glCanvas.renderer.registerForOnSurfaceCreated(this);		
 		glCanvas.updateThread.addObjectToUpdateList(this);
-		((OpenGLCanvas)glCanvas.canvas).$form().registerForOnInitialize(this);
+		((OpenGLCanvas)glCanvas.canvas).getRegistrar().registerForOnInitialize(this);
 	}
 	
 	
 
 	@Override
 	public void buildShaderCode() {
-		setFragmentShader("precision mediump float;  \n" +
-		        "void main(){              \n" +
-		        " gl_FragColor = vec4 ("+RedValue()+", "+GreenValue()+", "+BlueValue()+", 1.0); \n" +
-		        "}                         \n");
+		setFragmentShader(	"precision mediump float;  \n" +
+		        			"void main(){              \n" +
+		        			" gl_FragColor = vec4 ("+RedValue()+", "+GreenValue()+", "+BlueValue()+", 1.0); \n" +
+							"}\n");
 	}
 
 	@Override
 	public void glDraw() {
 		if (Visible()) {
 			GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 3);
+			GLRenderer.checkGLError("Draw Triangle Arrays");
 		}
 	}
+	
+	@Override
+	  public Events.Event getEventListener() {
+		  return eventListener;
+	  }
 
 	
 	@Override

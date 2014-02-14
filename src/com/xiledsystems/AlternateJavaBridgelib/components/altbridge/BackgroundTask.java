@@ -32,19 +32,31 @@ public class BackgroundTask extends AndroidNonvisibleComponent {
 	
 		@Override
 		protected void onPreExecute() {
-			EventDispatcher.dispatchEvent(BackgroundTask.this, Events.BEFORE_EXECUTE);
+			if (eventListener != null) {
+				eventListener.eventDispatched(Events.BEFORE_EXECUTE);
+			} else {
+				EventDispatcher.dispatchEvent(BackgroundTask.this, Events.BEFORE_EXECUTE);
+			}
 		}
 		
 		@Override
 		protected Boolean doInBackground(String... params) {
 			Object[] data = params;
-			EventDispatcher.dispatchEvent(BackgroundTask.this, Events.TASK_EXECUTE, data);
+			if (eventListener != null) {
+				eventListener.eventDispatched(Events.TASK_EXECUTE, data);
+			} else {
+				EventDispatcher.dispatchEvent(BackgroundTask.this, Events.TASK_EXECUTE, data);
+			}
 			return success;
 		}
 					
 		@Override
 		protected void onPostExecute(final Boolean success) {
-			EventDispatcher.dispatchEvent(BackgroundTask.this, Events.TASK_COMPLETE, success);
+			if (eventListener != null) {
+				eventListener.eventDispatched(Events.TASK_COMPLETE, success);
+			} else {
+				EventDispatcher.dispatchEvent(BackgroundTask.this, Events.TASK_COMPLETE, success);
+			}
 		}
 
 	}

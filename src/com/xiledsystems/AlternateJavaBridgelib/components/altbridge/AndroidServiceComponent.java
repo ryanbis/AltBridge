@@ -1,7 +1,9 @@
 package com.xiledsystems.AlternateJavaBridgelib.components.altbridge;
 
 import com.xiledsystems.AlternateJavaBridgelib.components.Component;
+import com.xiledsystems.AlternateJavaBridgelib.components.EventListener;
 import com.xiledsystems.AlternateJavaBridgelib.components.HandlesEventDispatching;
+import com.xiledsystems.AlternateJavaBridgelib.components.events.Events;
 
 
 	/**
@@ -10,9 +12,10 @@ import com.xiledsystems.AlternateJavaBridgelib.components.HandlesEventDispatchin
 	 *
 	 */
 
-public abstract class AndroidServiceComponent implements Component {
+public abstract class AndroidServiceComponent implements Component, EventListener {
 	
 	protected FormService formService;
+	protected Events.Event eventListener;
 	
 	/*
 	 *  Creates a new AndroidServiceComponent.
@@ -21,6 +24,10 @@ public abstract class AndroidServiceComponent implements Component {
 	
 	protected AndroidServiceComponent(FormService formService) {
 		this.formService = formService;
+	}
+	
+	public void setEventListener(Events.Event event) {
+		eventListener = event;
 	}
 	
 	// Component implementation

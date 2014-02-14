@@ -21,11 +21,7 @@ public class PhoneNumberPicker extends ContactPicker {
 	  ContactsContract.Contacts.DISPLAY_NAME,
 	  ContactsContract.CommonDataKinds.Phone.NUMBER,
 	  ContactsContract.CommonDataKinds.Phone.CONTACT_ID,
-	  ContactsContract.CommonDataKinds.Email.DATA
-    //Contacts.PeopleColumns.NAME,
-    //Contacts.PhonesColumns.NUMBER,
-    //Contacts.Phones.PERSON_ID,
-    //Contacts.People.PRIMARY_EMAIL_ID,
+	  ContactsContract.CommonDataKinds.Email.CONTACT_ID
   };
   private static final int NAME_INDEX = 0;
   private static final int NUMBER_INDEX = 1;
@@ -46,6 +42,10 @@ public class PhoneNumberPicker extends ContactPicker {
   public PhoneNumberPicker(ComponentContainer container, int resourceId) {
 	    super(container, ContactsContract.CommonDataKinds.Phone.CONTENT_URI, resourceId);
 	  }
+  
+  public PhoneNumberPicker(ComponentContainer container, int resourceId, boolean ignoreNullView) {
+    super(container, ContactsContract.CommonDataKinds.Phone.CONTENT_URI, resourceId, ignoreNullView);
+  }
 
   /**
    * PhoneNumber property getter method.
@@ -86,12 +86,10 @@ public class PhoneNumberPicker extends ContactPicker {
             contactName = guardCursorGetString(cursor, NAME_INDEX);
             phoneNumber = guardCursorGetString(cursor, NUMBER_INDEX);
             int contactId = cursor.getInt(PERSON_INDEX);
-            Uri cUri = ContentUris.withAppendedId(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, contactId);
+            Uri cUri = ContentUris.withAppendedId(ContactsContract.Contacts.CONTENT_URI, contactId);
             contactPictureUri = cUri.toString();
-            //String emailId = guardCursorGetString(cursor, EMAIL_INDEX);
-            // getting the email address is causing an exception, comment out this
-            // for now.
-            //emailAddress = getEmailAddress(emailId);
+            String emailId = guardCursorGetString(cursor, EMAIL_INDEX);
+            emailAddress = getEmailAddress(emailId);
             Log.i("PhoneNumberPicker",
                 "Contact name = " + contactName + ", phone number = " + phoneNumber +
                 /*", emailAddress = " + emailAddress +*/ ", contactPhotoUri = " +  contactPictureUri);

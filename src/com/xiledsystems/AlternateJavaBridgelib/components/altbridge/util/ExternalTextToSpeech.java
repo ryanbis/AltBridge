@@ -38,7 +38,7 @@ public class ExternalTextToSpeech implements ITextToSpeech, ActivityResultListen
     intent.putExtra("language", loc.getISO3Language());
     intent.putExtra("country", loc.getISO3Country());
     if (requestCode == 0) {
-      requestCode = container.$form().registerForActivityResult(this);
+      requestCode = container.getRegistrar().registerForActivityResult(this);
     }
     container.$context().startActivityForResult(intent, requestCode);
   }

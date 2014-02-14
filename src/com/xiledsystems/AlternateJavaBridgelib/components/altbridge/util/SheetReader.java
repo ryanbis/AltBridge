@@ -3,11 +3,8 @@ package com.xiledsystems.AlternateJavaBridgelib.components.altbridge.util;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map;
-
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
 import com.xiledsystems.AlternateJavaBridgelib.components.altbridge.collect.Maps;
 import android.graphics.Rect;
 

@@ -1,17 +1,16 @@
 package com.xiledsystems.AlternateJavaBridgelib.components.util;
 
+import android.util.Log;
+
 import com.xiledsystems.AlternateJavaBridgelib.components.altbridge.AndroidNonvisibleComponent;
 import com.xiledsystems.AlternateJavaBridgelib.components.altbridge.Form;
+import com.xiledsystems.AlternateJavaBridgelib.components.altbridge.FormService;
 import com.xiledsystems.AlternateJavaBridgelib.components.events.EventDispatcher;
-
-import android.os.Handler;
-import android.util.Log;
 
 
 public class UIEvent extends AndroidNonvisibleComponent {
 	
 	private static final String TAG = "UIEvent";	
-	
 	
 	/**
 	 * A helper component to run methods in the UI thread when working with
@@ -21,6 +20,17 @@ public class UIEvent extends AndroidNonvisibleComponent {
 	 */
 	public UIEvent(Form form) {
 		super(form);
+		
+	}
+	
+	/**
+	 * A helper component to run methods in the UI thread when working with
+	 * ThreadTimers (so you can do things to the UI).
+	 * 
+	 * @param form The Form this UIEvent resides in. Always "this"
+	 */
+	public UIEvent(FormService formservice) {
+		super(formservice);
 		
 	}
 	
@@ -35,16 +45,18 @@ public class UIEvent extends AndroidNonvisibleComponent {
 	 * @param eventName The name to pass for the event.
 	 */
 	public void fireEvent(final String eventName) {
-		if (eventName != null && !eventName.equals("")) {
-			final UIEvent dis = this;
+		if (eventName != null && !eventName.equals("")) {			
 			Runnable eventRunner = new Runnable() {				
 				@Override
 				public void run() {
-					EventDispatcher.dispatchEvent(dis, eventName);
+					EventDispatcher.dispatchEvent(UIEvent.this, eventName);
 				}
 			};			
-			Handler handler = new Handler();
-			handler.post(eventRunner);
+			if (container == null) {
+			  sContainer.$formService().post(eventRunner);
+			} else {
+			  container.getRegistrar().post(eventRunner);
+			}
 		} else {
 			Log.e(TAG, "The event name must be at least one character.");
 		}

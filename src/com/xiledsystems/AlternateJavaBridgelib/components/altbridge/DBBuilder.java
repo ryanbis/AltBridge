@@ -1,17 +1,25 @@
 package com.xiledsystems.AlternateJavaBridgelib.components.altbridge;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
-
 import com.xiledsystems.AlternateJavaBridgelib.components.altbridge.collect.DoubleList;
 
-public class DBBuilder {
 
-	private ArrayList<String> tables;
+public class DBBuilder implements Serializable {
+
+	/**
+   * 
+   */
+  private static final long serialVersionUID = 4082215079164457334L;
+  private ArrayList<String> tables;
 	private ArrayList<String> columns;
 	private ArrayList<String> datatypes;
 	private ArrayList<DoubleList> bigColumns;
 	private int dbVersion = 1;
-	private String dbName;
+	private String dbName = "";
 	
 	/**
 	 * 
@@ -29,7 +37,9 @@ public class DBBuilder {
 	
 	/**
 	 * 
-	 * Adds table information for the SimpleSQL database.
+	 * Adds table information for the SimpleSQL database. Note that you don't
+	 * need to use this method anymore, as you don't have to specify the datatype
+	 * anymore. 
 	 * 
 	 * @param tableName The name of the table. Spaces are not allowed.
 	 * @param columnNames A string array of the column names in this table
@@ -59,9 +69,35 @@ public class DBBuilder {
 			}			
 			datatypes.add(type);
 		}
-		bigColumns.add(new DoubleList(new ArrayList<Object>(columns), new ArrayList<Object>(datatypes)));
-		
+		bigColumns.add(new DoubleList(new ArrayList<Object>(columns), new ArrayList<Object>(datatypes)));		
 	}
+	
+	public void addColumn(String table, String columnName) {
+	  int index = tables.indexOf(table);
+	  if (index != -1) {
+	    bigColumns.get(index).add(columnName, "text");
+	  }
+	}
+		
+	/**
+     * 
+     * Adds table information for the SimpleSQL database.
+     * 
+     * @param tableName The name of the table. Spaces are not allowed.
+     * @param columnNames A string array of the column names in this table
+     * 
+     */
+    public void addTable(String tableName, String[] columnNames) {
+        tables.add(tableName);
+        columns.clear();
+        datatypes.clear();
+        int cols = columnNames.length;
+        for (int i = 0; i < cols; i++) {
+            columns.add(columnNames[i]);
+            datatypes.add("text");
+        }                
+        bigColumns.add(new DoubleList(new ArrayList<Object>(columns), new ArrayList<Object>(datatypes)));       
+    }
 	
 	/**
 	 * This is used internally. If you call this, you will have to re-instantiate
@@ -79,6 +115,22 @@ public class DBBuilder {
 		} else {
 			return false;
 		}
+	}
+	
+	/**
+	 * This is used internally. If you call this, you will have to re-instantiate
+	 * SimpleSQL. 
+	 * 
+	 * @param table The table to delete.
+	 * @return False if the table is not found.
+	 */
+	public boolean removeTable(int index) {
+		if (tables.size() > 0 && index >= 0 && index < tables.size()) {			
+			tables.remove(index);
+			bigColumns.remove(index);
+			return true;		
+		}
+		return false;
 	}
 	
 	public boolean containsTable(String table) {
@@ -151,6 +203,14 @@ public class DBBuilder {
 	
 	/**
 	 * 
+	 * @return - A String Arraylist of the table names
+	 */
+	public ArrayList<String> Tables() {
+		return tables;
+	}
+	
+	/**
+	 * 
 	 * 
 	 * @param table The table to check
 	 * @return the amount of columns in the table
@@ -177,7 +237,11 @@ public class DBBuilder {
 	 */
 	public int ColumnPosition(String table, String column) {
 		int tbl = tables.indexOf(table);
-		return bigColumns.get(tbl).getList(1).indexOf(column);
+		if (tbl > -1 && tbl < tables.size()) {
+			return bigColumns.get(tbl).getList(1).indexOf(column);
+		} else {
+			return -1;
+		}
 	}
 	
 	/**
@@ -207,6 +271,55 @@ public class DBBuilder {
 			tmp[i] = bigColumns.get(position).get(i)[1].toString();
 		}
 		return tmp;
+	}
+	
+	private void writeObject(ObjectOutputStream out) throws IOException {
+    
+	  out.writeInt(tables.size());
+	  for (int i = 0; i < tables.size(); i++) {
+	    out.writeUTF(tables.get(i));
+	  }
+      out.writeInt(columns.size());
+      for (int i = 0; i < columns.size(); i++) {
+        out.writeUTF(columns.get(i));
+      }
+      out.writeInt(datatypes.size());
+      for (int i = 0; i < datatypes.size(); i++) {
+        out.writeUTF(datatypes.get(i));
+      }
+      out.writeInt(bigColumns.size());
+      for (int i = 0; i < bigColumns.size(); i++) {
+        out.writeObject(bigColumns.get(i));
+      }
+      out.writeInt(dbVersion);
+	  out.writeUTF(dbName);
+	}  
+  
+	private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+	  
+	  tables = new ArrayList<String>();
+	  columns = new ArrayList<String>();
+	  datatypes = new ArrayList<String>();
+	  bigColumns = new ArrayList<DoubleList>();
+	  
+	  int size = in.readInt();
+	  for (int i = 0; i < size; i++) {
+	    tables.add(in.readUTF());
+	  }
+	  size = in.readInt();
+      for (int i = 0; i < size; i++) {
+        columns.add(in.readUTF());
+      }
+      size = in.readInt();
+      for (int i = 0; i < size; i++) {
+        datatypes.add(in.readUTF());
+      }
+      size = in.readInt();
+      for (int i = 0; i < size; i++) {
+        bigColumns.add((DoubleList) in.readObject());
+      }
+      dbVersion = in.readInt();     
+      dbName = in.readUTF();      
 	}
 	
 }

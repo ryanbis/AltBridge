@@ -1,8 +1,8 @@
 package com.xiledsystems.AlternateJavaBridgelib.components.OpenGL;
 
 import com.xiledsystems.AlternateJavaBridgelib.components.altbridge.AndroidViewComponent;
+import com.xiledsystems.AlternateJavaBridgelib.components.altbridge.Canvas;
 import com.xiledsystems.AlternateJavaBridgelib.components.altbridge.ComponentContainer;
-import com.xiledsystems.AlternateJavaBridgelib.components.altbridge.Form;
 import com.xiledsystems.AlternateJavaBridgelib.components.altbridge.OnDestroyListener;
 import com.xiledsystems.AlternateJavaBridgelib.components.altbridge.OnInitializeListener;
 import com.xiledsystems.AlternateJavaBridgelib.components.altbridge.OnPauseListener;
@@ -10,31 +10,32 @@ import com.xiledsystems.AlternateJavaBridgelib.components.altbridge.OnResumeList
 import com.xiledsystems.AlternateJavaBridgelib.components.altbridge.OnStartListener;
 import com.xiledsystems.AlternateJavaBridgelib.components.altbridge.OnStopListener;
 import com.xiledsystems.AlternateJavaBridgelib.components.altbridge.util.DrawingCanvas;
+import com.xiledsystems.AlternateJavaBridgelib.components.altbridge.util.Registrar;
 import com.xiledsystems.AlternateJavaBridgelib.components.events.EventDispatcher;
 import com.xiledsystems.AlternateJavaBridgelib.components.events.Events;
 import android.view.View;
 import android.widget.RelativeLayout;
 
 
-public class OpenGLCanvas extends AndroidViewComponent implements DrawingCanvas, OnStopListener,
-																	OnResumeListener, OnPauseListener, 
-																	OnInitializeListener, OnDestroyListener,
-																	OnStartListener {
-
+public class OpenGLCanvas extends AndroidViewComponent implements DrawingCanvas, OnStopListener, OnResumeListener, OnPauseListener, 
+																	OnInitializeListener, OnDestroyListener, OnStartListener {
+	
 	private OpenGLView view;
 	private final RelativeLayout outerLayout;
+	
 	
 	public OpenGLCanvas(ComponentContainer container) {
 		super(container);		
 		view = new OpenGLView(this);
 		outerLayout = new RelativeLayout(container.$context());
 		outerLayout.addView(view);
-		container.$form().setContentView(outerLayout);
-		container.$form().setOpenGL(true, outerLayout);
-		container.$form().registerForOnStop(this);
-		container.$form().registerForOnResume(this);
-		container.$form().registerForOnPause(this);
-		container.$form().registerForOnInitialize(this);
+		container.getRegistrar().setOpenGL(true, outerLayout);
+		container.getRegistrar().setContentView(outerLayout);
+		container.getRegistrar().registerForOnStart(this);
+		container.getRegistrar().registerForOnStop(this);
+		container.getRegistrar().registerForOnResume(this);
+		container.getRegistrar().registerForOnPause(this);
+		container.getRegistrar().registerForOnInitialize(this);
 	}
 	
 	public void addViewToParent(View newView) {
@@ -59,7 +60,7 @@ public class OpenGLCanvas extends AndroidViewComponent implements DrawingCanvas,
 	}
 	
 	public int[] getRealScreenSize() {
-		return new int[] { container.$form().scrnWidth, container.$form().scrnHeight };
+		return new int[] { container.getRegistrar().getAvailWidth(), container.getRegistrar().getAvailHeight() };
 	}
 	
 	public float CameraNear() {
@@ -88,7 +89,6 @@ public class OpenGLCanvas extends AndroidViewComponent implements DrawingCanvas,
 		
 	@Override
 	public View getView() {
-		// TODO Auto-generated method stub
 		return view;
 	}
 
@@ -96,28 +96,14 @@ public class OpenGLCanvas extends AndroidViewComponent implements DrawingCanvas,
 	public void postAnimEvent() {
 		EventDispatcher.dispatchEvent(this, Events.ANIM_MIDDLE);		
 	}
-
-	@Override
-	public void onResume() {
-		view.onResume();	
-		//view.resumeUpdateThread();
-	}
-
-
+	
 	@Override
 	public boolean atEdge(int edge) {
 		// TODO Auto-generated method stub
 		return false;
 	}
 
-
-	@Override
-	public Form $form() {
-		// TODO Auto-generated method stub
-		return container.$form();
-	}
-
-
+	
 	@Override
 	public void BackgroundColor(int color) {
 		view.BackgroundColor(color);
@@ -128,7 +114,6 @@ public class OpenGLCanvas extends AndroidViewComponent implements DrawingCanvas,
 		// TODO Auto-generated method stub
 		return null;
 	}
-
 		
 	public void requestEvent(String eventName, Object... args) {
 		EventDispatcher.dispatchEvent(this, eventName, args);
@@ -141,26 +126,40 @@ public class OpenGLCanvas extends AndroidViewComponent implements DrawingCanvas,
 
 	@Override
 	public void onPause() {
-		//view.pauseUpdateThread();		
-		view.onPause();	
-		
+		view.pauseUpdateThread();
+		view.onPause();		
+	}
+	
+	@Override
+	public void onResume() {
+		view.onResume();
+		view.resumeUpdateThread();
 	}
 	
 	@Override
 	public void onStart() {
-		view.resumeUpdateThread();
+		//view.resumeUpdateThread();
 	}
 
 	@Override
 	public void onStop() {		
-		view.pauseUpdateThread();		
+		//view.pauseUpdateThread();		
 	}
 	
 	@Override
 	public void onDestroy() {
 		view.destroyUpdateThread();
-		view.onPause();		
-		
+		view.onPause();				
+	}
+
+  @Override
+  public Registrar getRegistrar() {
+    return container.getRegistrar();
+  }
+  
+  	@Override
+	public void canvasInitialized() {		
+		EventDispatcher.dispatchEvent(OpenGLCanvas.this, Events.CANVAS_INIT);
 	}
 
 }

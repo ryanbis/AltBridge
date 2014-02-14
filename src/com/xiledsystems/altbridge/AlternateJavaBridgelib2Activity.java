@@ -10,4 +10,4 @@ public class AlternateJavaBridgelib2Activity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
     }
-}
+} 

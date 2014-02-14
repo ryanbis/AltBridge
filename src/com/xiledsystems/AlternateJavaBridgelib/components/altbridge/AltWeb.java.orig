@@ -1,0 +1,286 @@
+package com.xiledsystems.AlternateJavaBridgelib.components.altbridge;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.ResponseHandler;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.BasicResponseHandler;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.HttpParams;
+import com.xiledsystems.AlternateJavaBridgelib.components.events.EventDispatcher;
+import com.xiledsystems.AlternateJavaBridgelib.components.events.Events;
+import com.xiledsystems.AlternateJavaBridgelib.components.util.ErrorMessages;
+
+/**
+ * This is an alternate class to using Web. It doesn't yet have a Post
+ * method. This class uses apache's HTTP classes, rather than the
+ * standard java ones used by Web. Android uses the apache methods
+ * more, so this class was introduced.
+ * 
+ * @author Ryan Bis
+ *
+ */
+public class AltWeb extends AndroidNonvisibleComponent {
+
+  
+  private String url;
+  private Map<String, String> headers = new HashMap<String, String>();
+  private HttpParams params = null;
+  
+
+  public AltWeb(ComponentContainer Container) {
+    super(Container);
+  }
+
+  public AltWeb(SvcComponentContainer sContainer) {
+    super(sContainer);
+  }
+
+  /**
+   * Adds a header to this component
+   * 
+   * @param headerName
+   * @param value
+   * @return - an instance of AltWeb, for chaining methods
+   */
+  public AltWeb addHeader(String headerName, String value) {
+    headers.put(headerName, value);
+    return this;
+  }
+
+  /**
+   * 
+   * @return - The headers assigned to this component.
+   */
+  public Map<String, String> getHeaders() {
+    return headers;
+  }
+
+  /**
+   * Clears the headers for this component
+   */
+  public void clearHeaders() {
+    headers.clear();
+  }
+  
+  /**
+   * Adds parameters to this component.
+   * 
+   * @param paramName
+   * @param paramValue
+   * @return - an instance of AltWeb for chaining methods
+   */
+  public AltWeb addParam(String paramName, String paramValue) {
+    if (params == null) {
+      params = new BasicHttpParams();
+    }
+    params.setParameter(paramName, paramValue);
+    return this;
+  }
+  
+  /**
+   * Set the url for this component.
+   * 
+   * @param url
+   * @return - an instance of this component for chaining methods
+   */
+  public AltWeb Url(String url) {
+	  this.url = url;
+	  return this;
+  }
+  
+  /**
+   * 
+   * @return - The url this component is set to
+   */
+  public String Url() {
+	  return url;
+  }
+  
+  /**
+   * 
+   * @return - The parameters assigned to this component.
+   */
+  public HttpParams getParams() {
+    return params;
+  }
+  
+  /**
+   * Clear all parameters associated with this component.
+   */
+  public void clearParams() {
+    params = null;
+  }
+
+  /**
+   * This is a simple get method to run, which will return a String
+   * result using the GOT_TEXT event. To use get to get a file, use
+   * Get(pathnametonewfile).
+   * 
+   * The request is sent in a separate thread, but the event is posted
+   * on the UI thread.
+   * 
+   */
+  public void Get() {
+    ThreadTimer.runOneTimeThread(new Runnable() {
+      @Override
+      public void run() {
+        final HttpClient client = new DefaultHttpClient();
+        ResponseHandler<String> response = new BasicResponseHandler();
+        HttpGet request = new HttpGet(url);
+        if (headers.size() > 0) {
+          for (String s : headers.keySet()) {
+            request.addHeader(s, headers.get(s));            
+          }
+        }
+        if (params != null) {
+          request.setParams(params);
+        }
+        try {
+          final String respMsg = client.execute(request, response);
+          post(new Runnable() {            
+            @Override
+            public void run() {
+              EventDispatcher.dispatchEvent(AltWeb.this, Events.GOT_TEXT, respMsg);
+            }
+          });
+        } catch (ClientProtocolException e) {
+          e.printStackTrace();
+          dispatchError("Get()", ErrorMessages.ERROR_ALTWEB_CLIENT_PROTOCOL_EXCEPTION);
+        } catch (IOException e) {
+          e.printStackTrace();
+          dispatchError("Get()", ErrorMessages.ERROR_ALTWEB_IO_EXCEPTION);
+        }
+      }
+    });
+  }
+  
+  /**
+   * This is a simple get method to run, which will return a String
+   * result. The GotTextListener has the GotText(String response) method.
+   * This is where the result is returned. This is meant for more advanced
+   * users who are familiar with working with interfaces.
+   * 
+   * The request is sent in a separate thread, but the event is still posted
+   * on the UI thread.
+   * 
+   */
+  public void Get(final GotTextListener afterDoneAction) {
+    ThreadTimer.runOneTimeThread(new Runnable() {
+      @Override
+      public void run() {
+        final HttpClient client = new DefaultHttpClient();
+        ResponseHandler<String> response = new BasicResponseHandler();
+        HttpGet request = new HttpGet(url);
+        if (headers.size() > 0) {
+          for (String s : headers.keySet()) {
+            request.addHeader(s, headers.get(s));            
+          }
+        }
+        if (params != null) {
+          request.setParams(params);
+        }
+        try {
+          final String respMsg = client.execute(request, response);
+          post(new Runnable() {            
+            @Override
+            public void run() {
+              afterDoneAction.GotText(respMsg);
+            }
+          });
+        } catch (ClientProtocolException e) {
+          e.printStackTrace();
+          dispatchError("Get(listener)", ErrorMessages.ERROR_ALTWEB_CLIENT_PROTOCOL_EXCEPTION);
+        } catch (IOException e) {
+          e.printStackTrace();
+          dispatchError("Get(listener)", ErrorMessages.ERROR_ALTWEB_IO_EXCEPTION);
+        }
+      }
+    });
+  }
+  
+  /**
+   * Interface to use with Get(GotTextListener). The GotText(String response)
+   * method is called from this interface when a response has been delivered.
+   * 
+   */
+  public interface GotTextListener {
+	  public void GotText(String response);
+  }
+  
+  /**
+   * Use this method to get a file using an HttpGet request.
+   * You submit the path you'd like the file to download to.
+   * This request is run in it's own thread, and the GOT_FILE
+   * event is posted in the UI thread when complete, and successful.
+   * If not, check your logcat to see the issue (errors are dumped
+   * into logcat).
+   * 
+   * @param path
+   */
+  public void Get(final String path) {
+    ThreadTimer.runOneTimeThread(new Runnable() {      
+      @Override
+      public void run() {
+        final HttpClient client = new DefaultHttpClient();        
+        HttpGet request = new HttpGet(url);
+        if (headers.size() > 0) {
+          for (String s : headers.keySet()) {
+            request.addHeader(s, headers.get(s));
+          }
+        }
+        if (params != null) {
+          request.setParams(params);
+        }
+        try {
+          HttpResponse response = client.execute(request);
+          InputStream in = response.getEntity().getContent();
+          FileOutputStream out = new FileOutputStream(new File(path));
+          byte[] buffer = new byte[1024];
+          int len = 0;
+          while ((len = in.read(buffer)) > 0) {
+            out.write(buffer, 0, len);
+          }
+          out.close();
+          post(new Runnable() {
+            public void run() {
+              EventDispatcher.dispatchEvent(AltWeb.this, Events.GOT_FILE, path);
+            }
+          });
+        } catch (ClientProtocolException e) {
+          e.printStackTrace();
+          dispatchError("Get(path)", ErrorMessages.ERROR_ALTWEB_CLIENT_PROTOCOL_EXCEPTION);
+        } catch (IOException e) {
+          e.printStackTrace();
+          dispatchError("Get(path)", ErrorMessages.ERROR_ALTWEB_IO_EXCEPTION);
+        }     
+      }
+    });
+  }
+  
+  private void dispatchError(String functionName, int errorNumber) {
+	  if (container == null) {
+    	  sContainer.$formService().dispatchErrorOccurredEvent(this, functionName, errorNumber);
+      } else {
+    	  container.getRegistrar().dispatchErrorOccurredEvent(this, functionName, errorNumber);
+      }
+  }
+  
+        
+  private void post(Runnable run) {
+    if (container == null) {
+      sContainer.$formService().post(run);
+    } else {
+      container.getRegistrar().post(run);
+    }
+  }
+
+}

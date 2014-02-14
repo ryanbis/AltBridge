@@ -94,8 +94,8 @@ public class TextToSpeech extends AndroidNonvisibleComponent
     tts = useExternalLibrary ? new ExternalTextToSpeech(container, callback)
                              : new InternalTextToSpeech(container.$context(), callback);
     // Set up listeners
-    container.$form().registerForOnStop(this);
-    container.$form().registerForOnResume(this);
+    container.getRegistrar().registerForOnStop(this);
+    container.getRegistrar().registerForOnResume(this);
   }
 
   /**

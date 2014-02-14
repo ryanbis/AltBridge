@@ -1,5 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <declare-styleable name="ImageGallery">
+        <attr name ="android:galleryItemBackground" />
+    </declare-styleable>
+            
+    <declare-styleable name="HeaderBar">
+        <attr name="leftIconImage" format="reference" />
+        <attr name="headerText" format="string" />
+        <attr name="headerTextSize" format="dimension" />
+        <attr name="showOptionsButton" format="boolean" />
+        <attr name="optionsButtonImage" format="reference" />
+    </declare-styleable>
+    
+    <style name="Dialog" parent="android:style/Theme.Dialog">
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowIsFloating">true</item>
+    </style>
+    
     <attr name="direction">
         <enum name="rightToLeft" value="0" />
         <enum name="bottomToTop" value="1" />
@@ -15,10 +33,6 @@
         <attr name="topOffset" format="dimension"  />
         <attr name="allowSingleTap" format="boolean" />
         <attr name="animateOnClick" format="boolean" />
-    </declare-styleable>
-    
-    <declare-styleable name="ImageGallery">
-        <attr name ="android:galleryItemBackground" />
     </declare-styleable>
     
     <color name="White">#FFFFFF</color>

@@ -10,6 +10,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import com.xiledsystems.AlternateJavaBridgelib.components.altbridge.util.AsynchUtil;
 import com.xiledsystems.AlternateJavaBridgelib.components.altbridge.util.BluetoothReflection;
 import com.xiledsystems.AlternateJavaBridgelib.components.events.EventDispatcher;
+import com.xiledsystems.AlternateJavaBridgelib.components.events.Events;
 import com.xiledsystems.AlternateJavaBridgelib.components.util.ErrorMessages;
 
 
@@ -53,13 +54,13 @@ public final class BluetoothServer extends BluetoothConnectionBase {
   private void accept(final String functionName, String name, String uuidString) {
     final Object bluetoothAdapter = BluetoothReflection.getBluetoothAdapter();
     if (bluetoothAdapter == null) {
-    	container.$form().dispatchErrorOccurredEvent(this, functionName,
+    	container.getRegistrar().dispatchErrorOccurredEvent(this, functionName,
           ErrorMessages.ERROR_BLUETOOTH_NOT_AVAILABLE);
       return;
     }
 
     if (!BluetoothReflection.isBluetoothEnabled(bluetoothAdapter)) {
-    	container.$form().dispatchErrorOccurredEvent(this, functionName,
+    	container.getRegistrar().dispatchErrorOccurredEvent(this, functionName,
           ErrorMessages.ERROR_BLUETOOTH_NOT_ENABLED);
       return;
     }
@@ -68,7 +69,7 @@ public final class BluetoothServer extends BluetoothConnectionBase {
     try {
       uuid = UUID.fromString(uuidString);
     } catch (IllegalArgumentException e) {
-    	container.$form().dispatchErrorOccurredEvent(this, functionName,
+    	container.getRegistrar().dispatchErrorOccurredEvent(this, functionName,
           ErrorMessages.ERROR_BLUETOOTH_INVALID_UUID, uuidString);
       return;
     }
@@ -78,7 +79,7 @@ public final class BluetoothServer extends BluetoothConnectionBase {
           bluetoothAdapter, name, uuid);
       arBluetoothServerSocket.set(bluetoothServerSocket);
     } catch (IOException e) {
-    	container.$form().dispatchErrorOccurredEvent(this, functionName,
+    	container.getRegistrar().dispatchErrorOccurredEvent(this, functionName,
           ErrorMessages.ERROR_BLUETOOTH_UNABLE_TO_LISTEN);
       return;
     }
@@ -95,7 +96,7 @@ public final class BluetoothServer extends BluetoothConnectionBase {
             } catch (IOException e) {
               androidUIHandler.post(new Runnable() {
                 public void run() {
-                	container.$form().dispatchErrorOccurredEvent(BluetoothServer.this, functionName,
+                	container.getRegistrar().dispatchErrorOccurredEvent(BluetoothServer.this, functionName,
                       ErrorMessages.ERROR_BLUETOOTH_UNABLE_TO_ACCEPT);
                 }
               });
@@ -115,7 +116,7 @@ public final class BluetoothServer extends BluetoothConnectionBase {
                 setConnection(bluetoothSocket);
               } catch (IOException e) {
                 Disconnect();
-                container.$form().dispatchErrorOccurredEvent(BluetoothServer.this, functionName,
+                container.getRegistrar().dispatchErrorOccurredEvent(BluetoothServer.this, functionName,
                     ErrorMessages.ERROR_BLUETOOTH_UNABLE_TO_ACCEPT);
                 return;
               }
@@ -158,6 +159,10 @@ public final class BluetoothServer extends BluetoothConnectionBase {
  
   public void ConnectionAccepted() {
     Log.i(logTag, "Successfullly accepted bluetooth connection.");
-    EventDispatcher.dispatchEvent(this, "ConnectionAccepted");
+    if (eventListener != null) {
+		eventListener.eventDispatched("ConnectionAccepted");
+	} else {
+		EventDispatcher.dispatchEvent(this, "ConnectionAccepted");
+	}
   }
 }

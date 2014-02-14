@@ -1,5 +1,7 @@
 package com.xiledsystems.AlternateJavaBridgelib.components;
 
+import com.xiledsystems.AlternateJavaBridgelib.components.events.Events;
+
 
 /**
  * Superclass of visible components in the runtime libraries.
@@ -8,8 +10,20 @@ package com.xiledsystems.AlternateJavaBridgelib.components;
  *
  */
 
-public abstract class VisibleComponent implements Component {
+public abstract class VisibleComponent implements Component, EventListener {
+	
+	protected Events.Event eventListener;
+	
   protected VisibleComponent() {
+  }
+  
+  public void setEventListener(Events.Event event) {
+	  eventListener = event;
+  }
+  
+  @Override
+  public Events.Event getEventListener() {
+	  return eventListener;
   }
 
   /**

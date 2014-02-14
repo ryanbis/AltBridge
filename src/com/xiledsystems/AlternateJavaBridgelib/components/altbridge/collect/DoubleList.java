@@ -90,7 +90,7 @@ public class DoubleList implements Serializable {
 	 * Get the two values stored in the double list at the specified index
 	 * 
 	 * @param index
-	 * @return and Object array of the two values.
+	 * @return an Object array of the two values.
 	 */
 	public Object[] get(int index) {
 		Object things[] = new Object[2];
@@ -170,25 +170,29 @@ public class DoubleList implements Serializable {
 		list1.clear();
 		list2.clear();
 	}
+		
+	/**
+	 * 
+	 * @param list - the list to return
+	 * @return a String array of the selected list
+	 */
+	public String[] getListAsStringArray(int list) {		
+		return getStringArray(this, list);
+	}
+	
+	private static String[] getStringArray(DoubleList dl, int list) {
+		String[] array = new String[0];
+		dl.getStringList(list).toArray(array);
+		return array;
+	}
 	
 	public boolean listOneContains(Object item) {
-		for (int i = 0; i < list1.size(); i++) {
-			if (list1.get(i).equals(item)) {
-				return true;
-			}
-		}
-		return false;
+		return list1.contains(item);		
 	}
-	
+		
 	public boolean listTwoContains(Object item) {
-		for (int i = 0; i < list2.size(); i++) {
-			if (list2.get(i).equals(item)) {
-				return true;
-			}
-		}
-		return false;
-	}
-	
+		return list2.contains(item);
+	}	
 	
 	@Override
 	public boolean equals(Object object) {

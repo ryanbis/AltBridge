@@ -1,5 +1,7 @@
 	package com.xiledsystems.AlternateJavaBridgelib.components.altbridge;
 
+import java.lang.Thread.UncaughtExceptionHandler;
+
 import android.util.Log;
 
 import com.xiledsystems.AlternateJavaBridgelib.components.events.EventDispatcher;
@@ -16,6 +18,9 @@ public class ThreadTimer extends AndroidNonvisibleComponent implements OnResumeL
 	private boolean started;
 	private int delayTime;
 	private String name = "";
+	private EventListener custListener;
+	private boolean sleeping;
+	private UncaughtExceptionHandler customExceptionHandler;
 	
 	
 	/**
@@ -59,18 +64,35 @@ public class ThreadTimer extends AndroidNonvisibleComponent implements OnResumeL
 					sleepTime = (int) (interval - timeDiff);
 					
 					if (sleepTime > 0) {
-						try {							
+						try {
+							sleeping = true;
 							Thread.sleep(sleepTime);
-						} catch (InterruptedException e) {							
+							sleeping = false;
+						} catch (InterruptedException e) {
+							sleeping = false;
 						}
 					}					
 				}								
 			}			
 		};		
-		container.$form().registerForOnResume(this);
-		container.$form().registerForOnStop(this);
+		container.getRegistrar().registerForOnResume(this);
+		container.getRegistrar().registerForOnStop(this);
 	}
 	
+	public void setExceptionHandler(Thread.UncaughtExceptionHandler handler) {
+		customExceptionHandler = handler;
+		if (thread != null) {
+			thread.setUncaughtExceptionHandler(handler);
+		}
+	}
+	
+	public boolean isSleeping() {
+		return sleeping;
+	}
+	
+	public void interrupt() {
+		thread.interrupt();
+	}
 		
 	/**
 	 * A timer which uses a seperate thread to process. This is ideal
@@ -128,7 +150,7 @@ public class ThreadTimer extends AndroidNonvisibleComponent implements OnResumeL
 	
 	public ThreadTimer(ComponentContainer container, final Runnable action) {
 		super(container);
-		container.$form().registerForOnDestroy(this);
+		container.getRegistrar().registerForOnDestroy(this);
 		threadRunner = new Runnable() {			
 			@Override
 			public void run() {				
@@ -168,12 +190,12 @@ public class ThreadTimer extends AndroidNonvisibleComponent implements OnResumeL
 				}								
 			}						
 		};		
-		container.$form().registerForOnResume(this);
-		container.$form().registerForOnStop(this);
+		container.getRegistrar().registerForOnResume(this);
+		container.getRegistrar().registerForOnStop(this);
 	}
 	
 	private void runAction(Runnable action) {
-		container.$form().post(action);
+		container.getRegistrar().post(action);
 	}
 	
 	/**
@@ -234,6 +256,11 @@ public class ThreadTimer extends AndroidNonvisibleComponent implements OnResumeL
 	 */
 	public void Interval(int interval) {
 		this.interval = interval;
+		// If the timer is sleeping, this will interrupt the sleeping, so that
+		// you don't have to wait for the full cycle when changing the interval
+		if (sleeping) {
+			thread.interrupt();
+		}
 	}
 	
 	/**
@@ -266,6 +293,7 @@ public class ThreadTimer extends AndroidNonvisibleComponent implements OnResumeL
 						thread.join();					
 						retry=false;
 						isRunning=false;
+						thread.interrupt();
 					} catch (InterruptedException e) {					
 						Thread.State state = thread.getState();						
 						if (state.equals(Thread.State.RUNNABLE)) {
@@ -281,18 +309,10 @@ public class ThreadTimer extends AndroidNonvisibleComponent implements OnResumeL
 					Thread.State state = thread.getState();				
 					
 					if (!state.equals(Thread.State.NEW)) {
-					  if (name.equals("")) {
-						thread = new Thread(threadRunner);
-					  } else {
-					    thread = new Thread(threadRunner, name);
-					  }
+						createNewInstance(threadRunner, name);					  
 					}
 				} else {
-				  if (name.equals("")) {
-				    thread = new Thread(threadRunner);
-				  } else {
-					thread = new Thread(threadRunner, name);
-				  }
+					createNewInstance(threadRunner, name);				  
 				}
 				thread.start();			
 				isRunning=true;
@@ -309,6 +329,7 @@ public class ThreadTimer extends AndroidNonvisibleComponent implements OnResumeL
 							Thread.State state = thread.getState();						
 							if (state.equals(Thread.State.RUNNABLE)) {
 								thread.interrupt();
+								isRunning = false;
 								retry = false;
 							}
 						}
@@ -329,8 +350,31 @@ public class ThreadTimer extends AndroidNonvisibleComponent implements OnResumeL
 	 * @param run The runnable to run in the thread.
 	 */
 	public static void runOneTimeThread(Runnable run) {
-		  Thread thread = new Thread(run);
-		  thread.start();	  
+		  new Thread(run).start();		  
+	}
+	
+	/**
+	 * This is useful if you are just interested in running a one-off
+	 * process in a seperate thread (this will run once, then destroy
+	 * itself).
+	 * 
+	 * This is also useful as you don't need to instantiate ThreadTimer
+	 * to use this method. Just use ThreadTimer.runOneTimeThread(run, delayTime);
+	 * 
+	 * @param run The runnable to run in the thread.
+	 * @param delayTime The time to delay before running
+	 */
+	public static void runOneTimeThreadAfter(final Runnable run, final int delayTime) {
+		new Thread(new Runnable() {			
+			@Override
+			public void run() {
+				try {
+					Thread.sleep(delayTime);
+				} catch (InterruptedException e) {					
+				}
+				run.run();
+			}
+		}).start();
 	}
 	
 	/**
@@ -350,10 +394,27 @@ public class ThreadTimer extends AndroidNonvisibleComponent implements OnResumeL
 		thread.start();		
 	}
 	
+	private void createNewInstance(Runnable run, String name) {
+		if (name == null || name.equals("")) {
+			thread = new Thread(threadRunner);
+		} else {
+			thread = new Thread(threadRunner, name);
+		}
+		if (customExceptionHandler != null) {
+			thread.setUncaughtExceptionHandler(customExceptionHandler);
+		}
+	}
+	
+	public void setCustomEventListener(EventListener listener) {
+	  custListener = listener;
+	}
+	
 	protected void dispatchTimerEvent() {
-		
-		EventDispatcher.dispatchEvent(this, "Timer");
-		
+		if (custListener != null) {
+		  custListener.dipatchEvent();
+		} else {
+		  EventDispatcher.dispatchEvent(this, "Timer");
+		}		
 	}
 
 	@Override
@@ -375,12 +436,8 @@ public class ThreadTimer extends AndroidNonvisibleComponent implements OnResumeL
 	public void onResume() {		
 		if (autoToggle) {
 			
-			if (thread == null) {	
-			  if (name.equals("")) {
-			    thread = new Thread(threadRunner);
-			  } else {
-			    thread = new Thread(threadRunner, name);
-			  }
+			if (thread == null) {
+				createNewInstance(threadRunner, name);			  
 				if (started) {
 					this.running = true;
 					thread.start();
@@ -390,11 +447,7 @@ public class ThreadTimer extends AndroidNonvisibleComponent implements OnResumeL
 			this.running = true;
 			Thread.State state = thread.getState();
 			if (state.equals(Thread.State.TERMINATED) || state.equals(Thread.State.WAITING)) {
-			  if (name.equals("")) {
-				thread = new Thread(threadRunner);
-			  } else {
-			    thread = new Thread(threadRunner, name);
-			  }
+			  createNewInstance(threadRunner, name);				
 			}
 			try {
 				thread.start();
@@ -417,5 +470,9 @@ public class ThreadTimer extends AndroidNonvisibleComponent implements OnResumeL
 				}
 			}
 		}		
+	}
+	
+	public interface EventListener {
+	  public void dipatchEvent();
 	}
 }

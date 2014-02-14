@@ -70,14 +70,14 @@ public class OrientationSensor extends AndroidNonvisibleComponent
    * @param container  ignored (because this is a non-visible component)
    */
   public OrientationSensor(ComponentContainer container) {
-    super(container.$form());
+    super(container);
     sensorManager =
       (SensorManager) container.$context().getSystemService(Context.SENSOR_SERVICE);
     accelerometerSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
     magneticFieldSensor = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
         
-    container.$form().registerForOnResume(this);
-    container.$form().registerForOnStop(this);
+    container.getRegistrar().registerForOnResume(this);
+    container.getRegistrar().registerForOnStop(this);
     Enabled(true);
   }
   
@@ -292,7 +292,7 @@ public class OrientationSensor extends AndroidNonvisibleComponent
   @SuppressWarnings("deprecation")
   private int getScreenRotation() {
     Display display =
-        ((WindowManager) container.$form().getSystemService(Context.WINDOW_SERVICE)).
+        ((WindowManager) container.$context().getSystemService(Context.WINDOW_SERVICE)).
         getDefaultDisplay();
     if (SdkLevel.getLevel() >= SdkLevel.LEVEL_FROYO) {
       return FroyoUtil.getRotation(display);

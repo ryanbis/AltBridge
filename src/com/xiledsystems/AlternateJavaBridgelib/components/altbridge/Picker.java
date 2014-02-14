@@ -25,6 +25,11 @@ public abstract class Picker extends ButtonBase implements ActivityResultListene
 	    super(container, resourceId);
 	    
 	  }
+  
+  public Picker(ComponentContainer container, int resourceId, boolean ignoreNullView) {
+    super(container, resourceId, ignoreNullView);
+    
+  }
 
   /**
    *  Provides the Intent used to launch the picker activity.
@@ -35,9 +40,9 @@ public abstract class Picker extends ButtonBase implements ActivityResultListene
   public void click() {
     BeforePicking();
     if (requestCode == 0) { // only need to register once
-      requestCode = container.$form().registerForActivityResult(this);
+      requestCode = container.getRegistrar().registerForActivityResult(this);
     }
-    container.$context().startActivityForResult(getIntent(), requestCode);
+    container.getRegistrar().startActivityForResult(getIntent(), requestCode);
   }
 
   // Functions

@@ -1,17 +1,22 @@
 package com.xiledsystems.AlternateJavaBridgelib.components.altbridge.util;
 
-import com.xiledsystems.AlternateJavaBridgelib.components.Component;
+import java.util.Hashtable;
 
+import android.content.Context;
 import android.content.res.ColorStateList;
 import android.graphics.Typeface;
 import android.view.Gravity;
 import android.widget.TextView;
+
+import com.xiledsystems.AlternateJavaBridgelib.components.Component;
 
 /**
  * Helper methods for manipulating {@link TextView} objects.
  *
  */
 public class TextViewUtil {
+  
+  private static Hashtable<String, Typeface> fontCache = new Hashtable<String, Typeface>();
 
   private TextViewUtil() {
   }
@@ -147,6 +152,18 @@ public class TextViewUtil {
     textview.setTypeface(Typeface.create(tf, style));
     textview.requestLayout();
   }
+  
+  public static void setCustomTypeface(TextView textview, Typeface typeface, boolean bold, boolean italic) {
+    int style = 0;
+    if (bold) {
+      style |= Typeface.BOLD;
+    }
+    if (italic) {
+      style |= Typeface.ITALIC;
+    }
+    textview.setTypeface(typeface, style);
+    textview.requestLayout();
+  }
 
   /**
    * Returns the text for a {@link TextView}.
@@ -183,4 +200,27 @@ public class TextViewUtil {
   public static void setTextColors(TextView textview, ColorStateList colorStateList) {
     textview.setTextColor(colorStateList);
   }
+  
+  /**
+   * This will get a font from the assets directory. The typeface will be
+   * loaded in memory only once to prevent memory leaks. 
+   * 
+   * @param context
+   * @param assetPath
+   * @return
+   */
+  public static Typeface getTypeface(Context context, String assetPath) {
+    synchronized (fontCache) {
+      if (!fontCache.containsKey(assetPath)) {
+        try {
+          Typeface t = Typeface.createFromAsset(context.getAssets(), assetPath);          
+          fontCache.put(assetPath, t);
+        } catch (Exception e) {
+          return null;
+        }
+      }
+      return fontCache.get(assetPath);
+    }
+  }
+  
 }

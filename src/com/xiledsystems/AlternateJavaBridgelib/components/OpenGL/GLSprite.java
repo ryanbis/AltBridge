@@ -3,16 +3,12 @@ package com.xiledsystems.AlternateJavaBridgelib.components.OpenGL;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
-
 import com.xiledsystems.AlternateJavaBridgelib.components.events.EventDispatcher;
 import com.xiledsystems.AlternateJavaBridgelib.components.events.Events;
-import com.xiledsystems.AlternateJavaBridgelib.components.util.BoundingBox;
 import com.xiledsystems.altbridge.BuildConfig;
-
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
 import android.opengl.GLES20;
 import android.util.Log;
 
@@ -158,7 +154,8 @@ public class GLSprite extends GLRectangle implements GLTouchDragged, GLCollision
 	   * @param qy the y-coordinate
 	   * @return whether (qx, qy) falls within this sprite
 	   */
-	  private boolean containsPoint(float qx, float qy) {
+	  @SuppressWarnings("unused")
+	private boolean containsPoint(float qx, float qy) {
 	    return qx >= xLeft && qx < xLeft + width &&
 	        qy >= yTop && qy < yTop + height;
 	  }

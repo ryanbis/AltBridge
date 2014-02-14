@@ -4,9 +4,11 @@ package com.xiledsystems.AlternateJavaBridgelib.components.OpenGL;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.ShortBuffer;
+
 import android.opengl.GLES20;
 
 import com.xiledsystems.AlternateJavaBridgelib.components.altbridge.OnInitializeListener;
+import com.xiledsystems.AlternateJavaBridgelib.components.events.Events;
 
 
 public class GLRectangle extends GLMovingObject implements OnInitializeListener {
@@ -17,6 +19,8 @@ public class GLRectangle extends GLMovingObject implements OnInitializeListener 
     protected float yTop = 1.0f;
     
     protected ShortBuffer indexBuffer;
+    
+    private Events.Event eventListener;
     
     //protected short indices[] = { 0, 1, 2, 0, 2, 3 };
     protected short indices[] = { 3, 2, 0, 2, 1, 0 };
@@ -34,7 +38,7 @@ public class GLRectangle extends GLMovingObject implements OnInitializeListener 
 		// Initialize is needed to convert coordinate system to opengl coordinates
 		glCanvas.renderer.registerForOnSurfaceCreated(this);		
 		glCanvas.updateThread.addObjectToUpdateList(this);
-		((OpenGLCanvas)glCanvas.canvas).$form().registerForOnInitialize(this);
+		((OpenGLCanvas)glCanvas.canvas).getRegistrar().registerForOnInitialize(this);
 	}
 	
 	/**
@@ -130,6 +134,11 @@ public class GLRectangle extends GLMovingObject implements OnInitializeListener 
 			vertsConverted = true;
 		}
 	}
+	
+	@Override
+	  public Events.Event getEventListener() {
+		  return eventListener;
+	  }
 
 	@Override
 	public void onInitialize() {

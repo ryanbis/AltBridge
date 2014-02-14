@@ -2,15 +2,12 @@ package com.xiledsystems.AlternateJavaBridgelib.components.altbridge;
 
 import java.io.File;
 import java.util.ArrayList;
-
-
 import android.app.ListActivity;
 import android.content.Context;
 import android.content.Intent;
 import android.database.MatrixCursor;
 import android.os.Bundle;
 import android.os.Environment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,10 +22,8 @@ import android.widget.TextView;
 
 public class FilePickerActivity extends ListActivity {
 	
-	private static final String TOP_LEVEL = Environment.getExternalStorageDirectory().getPath();
 	private static final String FILE = "File";
 	private static final String DIR = "Directory";
-	private static final String TAG = "FilePicker";
 	
 	private Button top;
 	private Button back;
@@ -78,7 +73,8 @@ public class FilePickerActivity extends ListActivity {
 				
 	}
 	
-	private void fillList() {
+	@SuppressWarnings("deprecation")
+  private void fillList() {
 		
 		File file = new File(Environment.getExternalStorageDirectory(), currentDir);
 		File[] filelist = file.listFiles();
@@ -221,7 +217,7 @@ public class FilePickerActivity extends ListActivity {
 		
 		private ArrayList<FileInfo> files;
 		private static final String FILE = "File";
-		private static final String DIR = "Directory";
+		
 		
 		public FileAdapter(Context context, int textviewResourceId, ArrayList<FileInfo> files) {
 			super(context, textviewResourceId, files);
