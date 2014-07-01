@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
 import org.apache.http.NameValuePair;
@@ -340,6 +341,176 @@ public class AltWeb extends AndroidNonvisibleComponent {
 					post.setEntity(entity);
 					ResponseHandler<String> response = new BasicResponseHandler();
 					final String rspMsg = client.execute(post, response);
+					if (postOnUi) {
+						post(new Runnable() {
+							public void run() {
+								listener.Response(rspMsg);
+							}
+						});
+					} else {
+						listener.Response(rspMsg);
+					}
+				} catch (final ClientProtocolException e) {
+					e.printStackTrace();
+					if (postOnUi) {
+						post(new Runnable() {
+							@Override
+							public void run() {
+								listener.GotError(ErrorMessages.formatMessage(ErrorMessages.ERROR_ALTWEB_CLIENT_PROTOCOL_EXCEPTION, null),
+										e.getMessage());
+							}
+						});
+					} else {
+						listener.GotError(ErrorMessages.formatMessage(ErrorMessages.ERROR_ALTWEB_CLIENT_PROTOCOL_EXCEPTION, null), e.getMessage());
+					}
+				} catch (final IOException e) {
+					e.printStackTrace();
+					if (postOnUi) {
+						post(new Runnable() {
+							@Override
+							public void run() {
+								listener.GotError(ErrorMessages.formatMessage(ErrorMessages.ERROR_ALTWEB_IO_EXCEPTION, null), e.getMessage());
+							}
+						});
+					} else {
+						listener.GotError(ErrorMessages.formatMessage(ErrorMessages.ERROR_ALTWEB_IO_EXCEPTION, null), e.getMessage());
+					}
+				} catch (final Exception e) {
+					e.printStackTrace();
+					listener.GotError("General exception caught.", e.getMessage());
+					if (postOnUi) {
+						post(new Runnable() {
+							@Override
+							public void run() {
+								listener.GotError("General exception caught.", e.getMessage());
+							}
+						});
+					} else {
+						listener.GotError("General exception caught.", e.getMessage());
+					}
+				} finally {
+					client.getConnectionManager().shutdown();
+				}
+			}
+		});
+	}
+	
+	/**
+	 * POST an HttpEntity to a URL.
+	 * 
+	 * @param bytes
+	 * @param listener
+	 * @param postOnUi
+	 */
+	public void PostEntity(final HttpEntity entity, final ResponseListener listener, final boolean postOnUi) {
+		ThreadTimer.runOneTimeThread(new Runnable() {			
+			@Override
+			public void run() {
+				final HttpClient client = getNewHttpClient();
+				HttpPost post = null;
+				post = new HttpPost(url);
+				if (headers.size() > 0) {
+					for (String s : headers.keySet()) {
+						post.addHeader(s, headers.get(s));
+					}
+				}
+				if (params != null) {
+					post.setParams(params);
+				}				
+				try {					
+					post.setEntity(entity);
+					ResponseHandler<String> response = new BasicResponseHandler();
+					final String rspMsg = client.execute(post, response);
+					if (postOnUi) {
+						post(new Runnable() {
+							public void run() {
+								listener.Response(rspMsg);
+							}
+						});
+					} else {
+						listener.Response(rspMsg);
+					}
+				} catch (final ClientProtocolException e) {
+					e.printStackTrace();
+					if (postOnUi) {
+						post(new Runnable() {
+							@Override
+							public void run() {
+								listener.GotError(ErrorMessages.formatMessage(ErrorMessages.ERROR_ALTWEB_CLIENT_PROTOCOL_EXCEPTION, null),
+										e.getMessage());
+							}
+						});
+					} else {
+						listener.GotError(ErrorMessages.formatMessage(ErrorMessages.ERROR_ALTWEB_CLIENT_PROTOCOL_EXCEPTION, null), e.getMessage());
+					}
+				} catch (final IOException e) {
+					e.printStackTrace();
+					if (postOnUi) {
+						post(new Runnable() {
+							@Override
+							public void run() {
+								listener.GotError(ErrorMessages.formatMessage(ErrorMessages.ERROR_ALTWEB_IO_EXCEPTION, null), e.getMessage());
+							}
+						});
+					} else {
+						listener.GotError(ErrorMessages.formatMessage(ErrorMessages.ERROR_ALTWEB_IO_EXCEPTION, null), e.getMessage());
+					}
+				} catch (final Exception e) {
+					e.printStackTrace();
+					listener.GotError("General exception caught.", e.getMessage());
+					if (postOnUi) {
+						post(new Runnable() {
+							@Override
+							public void run() {
+								listener.GotError("General exception caught.", e.getMessage());
+							}
+						});
+					} else {
+						listener.GotError("General exception caught.", e.getMessage());
+					}
+				} finally {
+					client.getConnectionManager().shutdown();
+				}
+			}
+		});
+	}
+	
+	/**
+	 * POST an inputstream to a URL. 
+	 * 
+	 * @param bytes
+	 * @param listener
+	 * @param postOnUi
+	 */
+	public void PostStream(final InputStream stream, final ResponseListener listener, final boolean postOnUi) {
+		ThreadTimer.runOneTimeThread(new Runnable() {			
+			@Override
+			public void run() {
+				final HttpClient client = getNewHttpClient();
+				HttpPost post = null;
+				post = new HttpPost(url);
+				if (headers.size() > 0) {
+					for (String s : headers.keySet()) {
+						post.addHeader(s, headers.get(s));
+					}
+				}
+				if (params != null) {
+					post.setParams(params);
+				}
+				InputStreamEntity entity;
+				try {
+					entity = new InputStreamEntity(stream, -1);
+					entity.setContentType("binary/octet-stream");
+					entity.setChunked(true);
+					post.setEntity(entity);
+					ResponseHandler<String> response = new BasicResponseHandler();
+					final String rspMsg = client.execute(post, response);
+					try {
+						stream.close();
+					} catch (IOException e) {
+						// Must already be closed.
+						e.printStackTrace();
+					}
 					if (postOnUi) {
 						post(new Runnable() {
 							public void run() {

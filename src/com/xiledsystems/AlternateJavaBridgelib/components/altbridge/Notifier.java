@@ -506,8 +506,6 @@ public final class Notifier extends AndroidNonvisibleComponent implements Compon
 			notification.ledOffMS = flashOff;
 			notification.ledOnMS = flashOn;
 			notification.flags |= Notification.FLAG_SHOW_LIGHTS;
-		} else {
-			notification.flags |= Notification.DEFAULT_LIGHTS;
 		}
 
 		Context context = getContext();
@@ -570,8 +568,6 @@ public final class Notifier extends AndroidNonvisibleComponent implements Compon
 			notification.ledOffMS = flashOff;
 			notification.ledOnMS = flashOn;
 			notification.flags |= Notification.FLAG_SHOW_LIGHTS;
-		} else {
-			notification.flags |= Notification.DEFAULT_LIGHTS;
 		}
 
 		Context context = getContext();
@@ -632,8 +628,6 @@ public final class Notifier extends AndroidNonvisibleComponent implements Compon
 			notification.ledOffMS = flashOff;
 			notification.ledOnMS = flashOn;
 			notification.flags |= Notification.FLAG_SHOW_LIGHTS;
-		} else {
-			notification.flags |= Notification.DEFAULT_LIGHTS;
 		}
 		if (vibrate) {
 			notification.defaults |= Notification.DEFAULT_VIBRATE;

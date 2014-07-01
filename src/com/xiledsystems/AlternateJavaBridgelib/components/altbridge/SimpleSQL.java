@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
+import android.app.Activity;
+import android.app.Service;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -13,7 +15,9 @@ import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
+import com.xiledsystems.AlternateJavaBridgelib.components.HandlesEventDispatching;
 import com.xiledsystems.AlternateJavaBridgelib.components.altbridge.collect.TwinList;
+import com.xiledsystems.AlternateJavaBridgelib.components.altbridge.util.Registrar;
 import com.xiledsystems.AlternateJavaBridgelib.components.altbridge.util.SdkLevel;
 import com.xiledsystems.AlternateJavaBridgelib.components.errors.SimpleSQLBatchException;
 
@@ -56,6 +60,7 @@ public class SimpleSQL extends AndroidNonvisibleComponent implements OnDestroySv
 	private TinyDB storage;
 	private boolean addingTable;
 	private boolean forcedBuilder;
+	private Context context;
 	
 	/**
 	 * 
@@ -230,6 +235,70 @@ public class SimpleSQL extends AndroidNonvisibleComponent implements OnDestroySv
 		}
 		
 		keepDbInMemory(keepInMem);
+	}
+	
+	/**
+	 * 
+	 * Constructor for SimpleSQL component. This is experimental for use outside
+	 * of the bridge
+	 * 
+	 * @param form
+	 *            Always use this
+	 * @param builder
+	 *            The table/column configuration helper. If builder is null,
+	 *            this will cause a RuntimeException.
+	 */
+	public SimpleSQL(final Context context, DBBuilder builder) {
+		super(new SvcComponentContainer() {			
+			@Override
+			public String $formSvcName() {
+				return null;
+			}			
+			@Override
+			public FormService $formService() {
+				return null;
+			}			
+			@Override
+			public Service $context() {
+				return null;
+			}
+		});
+		this.context = context;
+		DATABASE_NAME = getDBName(builder, context);
+		if (builder == null) {
+			throw new RuntimeException("SimpleSQL: Builder passed to DB is null!");
+		}
+		storage = new TinyDB(context, true);
+		storage.LogErrors(false);
+		BUILDER_SAVE = getBuilderSaveName();
+		Object b = storage.GetValue(BUILDER_SAVE);
+		if (b instanceof DBBuilder) {
+			dBuilder = (DBBuilder) b;
+		} else {
+			dBuilder = builder;
+		}
+		if (dBuilder.Version() > 1) {
+			DATABASE_VERSION = dBuilder.Version();
+		}
+		if (dBuilder.DBName() != null && !dBuilder.DBName().equals("")) {
+			DATABASE_NAME = dBuilder.DBName();
+		}
+		dbHelper = new BigDBSqlOpenHelper(context);
+		checkBuilderForDuplicateTables(dBuilder);
+		// db = dbHelper.getWritableDatabase();
+		if (builder != dBuilder) {
+			storage.StoreValue(BUILDER_SAVE, dBuilder);
+		}
+		keepDbInMemory(keepInMem);
+	}
+	
+	@Override
+	protected Context getContext() {
+		if (context == null) {
+			return super.getContext();
+		} else {
+			return context;
+		}
 	}
 	
 	private static String getDBName(DBBuilder dBuilder, Context context) {

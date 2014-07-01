@@ -9,6 +9,7 @@ import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -276,6 +277,7 @@ final class CanvasView extends View {
 			// they "fix" that bug. Try Bitmap.createScaledBitmap, but if it gives us an
 			// immutable bitmap, we'll have to create a mutable bitmap and scale the old bitmap using
 			// Canvas.drawBitmap.
+			try {
 			Bitmap scaledBitmap = Bitmap.createScaledBitmap(oldBitmap, w, h, false);
 			if (scaledBitmap.isMutable()) {
 				// scaledBitmap is mutable; we can use it in a canvas.
@@ -300,6 +302,12 @@ final class CanvasView extends View {
 				RectF dst = new RectF(0, 0, w, h);
 				canvas.drawBitmap(oldBitmap, src, dst, null);
 			}
+		} catch (IllegalArgumentException e) {
+			// We get an illegal argument exception here sometimes, as for whatever reason, the width and
+			// height are passed as 0.
+			Log.e("Canvas", "Bad values passed to createScaledBitmap w = " + w + ", h = " + h);
+		}
+			
 		}
 	}
 

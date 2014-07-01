@@ -9,10 +9,13 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.StreamCorruptedException;
+
 import android.app.Activity;
+import android.app.Service;
 import android.content.Context;
 import android.os.Environment;
 import android.util.Log;
+
 import com.xiledsystems.AlternateJavaBridgelib.components.Component;
 import com.xiledsystems.AlternateJavaBridgelib.components.HandlesEventDispatching;
 import com.xiledsystems.AlternateJavaBridgelib.components.altbridge.util.Registrar;
@@ -25,6 +28,7 @@ import com.xiledsystems.AlternateJavaBridgelib.components.altbridge.util.Registr
 public class TinyDB extends AndroidNonvisibleComponent implements Component, Deleteable {
 
 	private boolean logErrors = true;
+	private Context context;
 
 	/**
 	 * Creates a new TinyDB component.
@@ -81,7 +85,7 @@ public class TinyDB extends AndroidNonvisibleComponent implements Component, Del
 	 * Use this constructor at your own risk. This is a constructor to use if you are outside of the AltBridge
 	 * environment. (Using it in an activity).
 	 */
-	public TinyDB(final Activity context, boolean isActivity) {
+	public TinyDB(final Context context, boolean non) {		
 		super(new ComponentContainer() {
 			@Override
 			public void setChildWidth(AndroidViewComponent component, int width) {
@@ -95,7 +99,7 @@ public class TinyDB extends AndroidNonvisibleComponent implements Component, Del
 			}
 			@Override
 			public Activity $context() {
-				return context;
+				return null;
 			}
 			@Override
 			public Registrar getRegistrar() {
@@ -111,9 +115,18 @@ public class TinyDB extends AndroidNonvisibleComponent implements Component, Del
 			public void removeAllViews() {	
 			}
 		});
-
+		this.context = context;
 	}
-
+	
+	@Override
+	protected Context getContext() {
+		if (context == null) {
+			return super.getContext();
+		} else {
+			return context;
+		}
+	}
+		
 	public void StoreValue(final String tag, final Object valueToStore) {
 		try {
 			Context context;
